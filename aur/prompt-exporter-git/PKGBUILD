@@ -2,7 +2,7 @@
 
 pkgname=prompt-exporter-git
 _pkgname=prompt-exporter
-pkgver=2.0.1.r12.g9b926ab
+pkgver=2.0.1.r14.ga3751dd
 pkgrel=1
 pkgdesc="CLI to sync AI conversation prompts from multiple sources (ChatGPT first)"
 arch=('any')
