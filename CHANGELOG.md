@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.1
+
+### Changed
+
+- Republish after rewriting `master` commit messages to remove Cursor `Co-authored-by` trailers (no product/API change vs 2.0.0)
+- Keep GitHub Release `v2.0.0` as-is; this tag is the clean tip for installs
+
 ## 2.0.0
 
 ### Breaking

@@ -1,6 +1,6 @@
 {
   "name": "prompt-exporter",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "CLI to sync AI conversation prompts from multiple sources (ChatGPT first) to local JSON + Markdown",
   "license": "Apache-2.0",
   "author": "Alexandru Zbarcea <alexz@apache.org>",

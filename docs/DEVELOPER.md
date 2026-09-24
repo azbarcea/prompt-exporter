@@ -27,7 +27,7 @@ aur/
 
 ## Release (2.0.x)
 
-`package.json` is already `2.0.0`. Shipping steps:
+`package.json` is track `package.json` (currently 2.0.1). Shipping steps:
 
 ### 1. Push release prep (this commit) and tag
 
