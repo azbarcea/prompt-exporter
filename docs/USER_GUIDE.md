@@ -8,7 +8,9 @@
 - Re-sync incrementally as chats change
 - Hand transcripts to another AI as context
 
-The first source is **chatgpt** (chatgpt.com). More sources will follow.
+The first source is **chatgpt** (chatgpt.com). Planned next: Claude, Gemini, Copilot, Perplexity, and Grok.
+
+**Platforms:** Linux is supported today; Windows and macOS are in focus for CDP/browser path parity.
 
 ## Install
 

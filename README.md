@@ -7,6 +7,17 @@ CLI to **sync AI conversation prompts** from multiple sources to your machine as
 **Sources**:
 
 - ✅ `chatgpt` — [chatgpt.com](https://chatgpt.com/) history via Chromium CDP
+- 🎯 `claude` — [claude.ai](https://claude.ai/) (planned)
+- 🎯 `gemini` — [gemini.google.com](https://gemini.google.com/) (planned)
+- 🎯 `copilot` — [copilot.microsoft.com](https://copilot.microsoft.com/) / Bing Copilot (planned)
+- 🎯 `perplexity` — [perplexity.ai](https://www.perplexity.ai/) (planned)
+- 🎯 `grok` — [grok.x.ai](https://grok.x.ai/) / xAI (planned)
+
+**Platforms**:
+
+- ✅ **Linux** — primary development and packaging target (AUR `prompt-exporter-git`)
+- 🎯 **Windows** — in focus (CDP + Chromium/Chrome paths)
+- 🎯 **macOS** — in focus (CDP + Chromium/Chrome paths)
 
 **User guide:** [docs/USER_GUIDE.md](./docs/USER_GUIDE.md)  
 **Developer guide:** [docs/DEVELOPER.md](./docs/DEVELOPER.md)
