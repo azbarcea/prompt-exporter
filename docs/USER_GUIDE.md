@@ -8,7 +8,7 @@
 - Re-sync incrementally as chats change
 - Hand transcripts to another AI as context
 
-The first source is **chatgpt** (chatgpt.com). Planned next: Claude, Gemini, Copilot, Perplexity, and Grok.
+The first source is **chatgpt** (chatgpt.com). Planned next: `claude`, `gemini`, `lumo`, `deepseek`, `perplexity`, `copilot` (Microsoft 365), `grok`, and `kimi`.
 
 **Platforms:** Linux is supported today; Windows and macOS are in focus for CDP/browser path parity.
 

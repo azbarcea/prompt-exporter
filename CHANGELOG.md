@@ -7,6 +7,7 @@
 - Republish after rewriting `master` commit messages to remove Cursor `Co-authored-by` trailers (no product/API change vs 2.0.0)
 - Keep GitHub Release `v2.0.0` as-is; this tag is the clean tip for installs
 - Require **Node.js >= 24**; CI matrix is Node 24 and 26 only (dropped deprecated 20/22)
+- Document planned sources: `lumo`, `deepseek`, `perplexity`, `copilot` (M365), `grok`, `kimi` (plus existing `claude` / `gemini`)
 
 ## 2.0.0
 
