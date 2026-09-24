@@ -11,6 +11,40 @@ CLI to **sync AI conversation prompts** from multiple sources to your machine as
 **User guide:** [docs/USER_GUIDE.md](./docs/USER_GUIDE.md)  
 **Developer guide:** [docs/DEVELOPER.md](./docs/DEVELOPER.md)
 
+Usage example:
+
+```bash
+$ prompt-exporter sync --source chatgpt --concurrency 6
+✔ Authenticated (Chromium CDP, 6 workers)
+
+Backup settings:
+  Output: /home/john/.prompt-exporter/chatgpt
+  Concurrency: 6
+  Delay/gap: 200ms
+  Transport: CDP tab pool (tune --concurrency / --delay; -v prints throttle stats)
+  Incremental: true
+  Download files: false
+
+Main conversations
+
+Listing     |████████████████████████████████████████| 100% | 1354/1354
+
+Downloading |████████████████████████████████████████| 100% | 1354/1354
+
+  Downloaded: 0, Skipped: 1354, Failed: 0
+
+✔ Found 0 projects
+
+
+Backup completed!
+  Total conversations: 1354
+  Downloaded: 0
+  Skipped (unchanged): 1354
+  Converted 1354 conversations to markdown
+
+Output directory: /home/john/.prompt-exporter/chatgpt/conversations
+```
+
 ## Install
 
 ```bash
