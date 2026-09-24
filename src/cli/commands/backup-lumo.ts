@@ -79,10 +79,16 @@ export async function lumoBackupCommand(
     }
 
     const mdSpinner = ora('Writing Markdown…').start();
-    const md = await convertDirectory(storage.getConversationsDir());
-    mdSpinner.succeed(
-      chalk.green(`Markdown: ${md.converted} written, ${md.errors} errors`)
-    );
+    const md = await convertDirectory(options.output);
+    if (md.converted === 0 && md.errors > 0) {
+      mdSpinner.fail(
+        chalk.red(`Markdown: 0 written, ${md.errors} errors`)
+      );
+    } else {
+      mdSpinner.succeed(
+        chalk.green(`Markdown: ${md.converted} written, ${md.errors} errors`)
+      );
+    }
   } catch (error) {
     spinner.fail(chalk.red('Lumo sync failed'));
     throw error;
