@@ -1,7 +1,8 @@
 import type { Source, SourceId, SourceInfo } from './types.js';
 import { chatgptSource } from './chatgpt/index.js';
+import { lumoSource } from './lumo/index.js';
 
-const sources: Source[] = [chatgptSource];
+const sources: Source[] = [chatgptSource, lumoSource];
 
 export function listSources(): SourceInfo[] {
   return sources.map(({ id, label, description }) => ({

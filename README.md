@@ -7,9 +7,9 @@ CLI to **sync AI conversation prompts** from multiple sources to your machine as
 **Sources**:
 
 - ✅ `chatgpt` — [chatgpt.com](https://chatgpt.com/) history via Chromium CDP
+- ✅ `lumo` — [lumo.proton.me](https://lumo.proton.me/) (Proton) via Chromium CDP / in-app Redux
 - 🎯 `claude` — [claude.ai](https://claude.ai/) (planned)
 - 🎯 `gemini` — [gemini.google.com](https://gemini.google.com/) (planned)
-- 🎯 `lumo` — [lumo.proton.me](https://lumo.proton.me/) / Proton Lumo (planned)
 - 🎯 `deepseek` — [chat.deepseek.com](https://chat.deepseek.com/) (planned)
 - 🎯 `perplexity` — [perplexity.ai](https://www.perplexity.ai/) (planned)
 - 🎯 `copilot` — Microsoft 365 Copilot ([m365.cloud.microsoft](https://m365.cloud.microsoft/chat/) / [copilot.microsoft.com](https://copilot.microsoft.com/)) (planned)

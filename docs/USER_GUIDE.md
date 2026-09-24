@@ -8,7 +8,7 @@
 - Re-sync incrementally as chats change
 - Hand transcripts to another AI as context
 
-The first source is **chatgpt** (chatgpt.com). Planned next: `claude`, `gemini`, `lumo`, `deepseek`, `perplexity`, `copilot` (Microsoft 365), `grok`, and `kimi`.
+The first implemented sources are **chatgpt** (chatgpt.com) and **lumo** ([lumo.proton.me](https://lumo.proton.me/)). Planned next: `claude`, `gemini`, `deepseek`, `perplexity`, `copilot` (Microsoft 365), `grok`, and `kimi`.
 
 **Platforms:** Linux is supported today; Windows and macOS are in focus for CDP/browser path parity.
 
@@ -87,6 +87,17 @@ prompt-exporter sync --source chatgpt
 prompt-exporter sync --download-files
 prompt-exporter sync --no-incremental   # force full re-download
 prompt-exporter sources
+```
+
+### Lumo (Proton)
+
+Lumo encrypts payloads on the server. Sync reads the **decrypted** in-app Redux store over CDP after login:
+
+```bash
+prompt-exporter chromium start --url https://lumo.proton.me/
+# log in; wait until chats appear in the sidebar
+prompt-exporter sync --source lumo
+prompt-exporter list --source lumo
 ```
 
 `sync` is incremental by default (skips unchanged `update_time`).

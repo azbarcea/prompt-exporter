@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.0
+
+### Added
+
+- **`lumo` source** — sync/list from [lumo.proton.me](https://lumo.proton.me/) via Chromium CDP (reads decrypted in-app Redux state; Lumo encrypts at rest on the server)
+
+### Changed
+
+- `sources` registry includes `chatgpt` and `lumo`
+- CLI version **2.1.0**
+
 ## 2.0.1
 
 ### Changed

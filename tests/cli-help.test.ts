@@ -57,5 +57,6 @@ describe('cli help (built dist)', () => {
     const sources = run(['sources']);
     assert.equal(sources.status, 0);
     assert.match(sources.stdout, /chatgpt/);
+    assert.match(sources.stdout, /lumo/);
   });
 });

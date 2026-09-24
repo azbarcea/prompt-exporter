@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { backupCommand } from './commands/backup.js';
+import { lumoBackupCommand, lumoListCommand } from './commands/backup-lumo.js';
 import { chromiumStartCommand } from './commands/chromium.js';
 import { listCommand } from './commands/list.js';
 import { projectsCommand } from './commands/projects.js';
@@ -29,7 +30,7 @@ export function createCli(): Command {
     .description(
       'Export and sync AI conversation prompts from multiple sources to local JSON + Markdown'
     )
-    .version('2.0.0')
+    .version('2.1.0')
     .hook('preAction', async () => {
       await ensureHomeLayout();
     })
@@ -47,6 +48,8 @@ export function createCli(): Command {
         'Typical flow:',
         '  prompt-exporter chromium start',
         '  prompt-exporter sync --source chatgpt',
+        '  prompt-exporter chromium start --url https://lumo.proton.me/',
+        '  prompt-exporter sync --source lumo',
         '',
         'Data: ~/.prompt-exporter/{source}/conversations/',
       ].join('\n')
@@ -142,6 +145,7 @@ export function createCli(): Command {
         'Examples:',
         '  prompt-exporter chromium start',
         '  prompt-exporter chromium start --port 9222',
+        '  prompt-exporter chromium start --url https://lumo.proton.me/',
         '  prompt-exporter chromium start --isolated',
       ].join('\n')
     )
@@ -208,6 +212,15 @@ export function createCli(): Command {
     source?: string;
   }) => {
     const sourceId = resolveSourceId(options.source);
+    if (sourceId === 'lumo') {
+      await lumoBackupCommand({
+        output: resolveOutput(options),
+        incremental: options.incremental,
+        verbose: options.verbose,
+        cdpPort: options.port,
+      });
+      return;
+    }
     if (sourceId !== 'chatgpt') {
       throw new Error(
         `Source "${sourceId}" is registered but sync is not implemented yet`
@@ -278,6 +291,7 @@ export function createCli(): Command {
           'Examples:',
           '  prompt-exporter sync',
           '  prompt-exporter sync --source chatgpt',
+          '  prompt-exporter sync --source lumo',
           '  prompt-exporter sync --download-files',
           '  prompt-exporter sync --no-incremental',
         ].join('\n')
@@ -320,6 +334,14 @@ export function createCli(): Command {
       .option('--json', 'Output as JSON', false)
       .action(async (options) => {
         const sourceId = resolveSourceId(options.source);
+        if (sourceId === 'lumo') {
+          await lumoListCommand({
+            verbose: options.verbose,
+            json: options.json,
+            cdpPort: options.port,
+          });
+          return;
+        }
         if (sourceId !== 'chatgpt') {
           throw new Error(`Source "${sourceId}" list not implemented yet`);
         }

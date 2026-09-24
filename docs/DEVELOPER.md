@@ -17,6 +17,7 @@ src/
     types.ts               # Source interface
     registry.ts
     chatgpt/               # chatgpt source (api/, index.ts)
+    lumo/                  # lumo.proton.me (CDP Redux export)
   services/                # storage, markdown, backup (source-agnostic)
   utils/                   # paths, credentials, cdp, browser
 aur/

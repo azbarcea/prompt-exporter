@@ -126,6 +126,18 @@ export function isChatGptUrl(url: string): boolean {
   }
 }
 
+export function isLumoUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname === 'lumo.proton.me' ||
+      parsed.hostname.endsWith('.lumo.proton.me')
+    );
+  } catch {
+    return false;
+  }
+}
+
 function parseTarget(raw: JsonObject): CdpTarget | null {
   if (typeof raw.id !== 'string') return null;
   return {
@@ -178,7 +190,7 @@ function getWebSocket(): typeof WebSocket {
   return WS;
 }
 
-async function withCdpSocket<T>(
+export async function withCdpSocket<T>(
   webSocketDebuggerUrl: string,
   fn: (send: (method: string, params?: JsonObject) => Promise<JsonObject>) => Promise<T>
 ): Promise<T> {
