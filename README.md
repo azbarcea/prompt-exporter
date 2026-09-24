@@ -15,7 +15,7 @@ CLI to **sync AI conversation prompts** from multiple sources to your machine as
 
 **Platforms**:
 
-- ✅ **Linux** — primary development and packaging target (AUR `prompt-exporter-git`)
+- ✅ **Linux** — primary development and packaging target (AUR `prompt-exporter` / `prompt-exporter-git`)
 - 🎯 **Windows** — in focus (CDP + Chromium/Chrome paths)
 - 🎯 **macOS** — in focus (CDP + Chromium/Chrome paths)
 
@@ -93,7 +93,8 @@ Layout after sync:
 ### Arch Linux (AUR)
 
 ```bash
-yay -S prompt-exporter-git
+yay -S prompt-exporter          # stable (tagged release)
+# yay -S prompt-exporter-git   # track master
 ```
 
 ### From GitHub (npm package)

@@ -19,7 +19,80 @@ src/
     chatgpt/               # chatgpt source (api/, index.ts)
   services/                # storage, markdown, backup (source-agnostic)
   utils/                   # paths, credentials, cdp, browser
-aur/                       # Arch PKGBUILD for prompt-exporter-git
+aur/
+  prompt-exporter/         # AUR stable (GitHub tag tarball)
+  prompt-exporter-git/     # AUR VCS (tracks master)
+  publish.sh
+```
+
+## Release (2.0.x)
+
+`package.json` is already `2.0.0`. Shipping steps:
+
+### 1. Push release prep (this commit) and tag
+
+```bash
+cd /path/to/prompt-exporter
+git push origin master
+
+git tag -a v2.0.0 -m "prompt-exporter 2.0.0"
+git push origin v2.0.0
+```
+
+### 2. GitHub Release
+
+```bash
+# If gh is installed:
+gh release create v2.0.0 --title "2.0.0" --notes-file - <<'EOF'
+See CHANGELOG.md for breaking changes (rebrand, Apache-2.0, multi-source layout).
+EOF
+
+# Or: GitHub → Releases → Draft from tag v2.0.0 → paste CHANGELOG 2.0.0 section
+```
+
+### 3. Fill AUR stable checksum
+
+```bash
+TARBALL_URL="https://github.com/azbarcea/prompt-exporter/archive/refs/tags/v2.0.0.tar.gz"
+SUM=$(curl -sL "$TARBALL_URL" | sha256sum | awk '{print $1}')
+echo "$SUM"
+
+# Update aur/prompt-exporter/PKGBUILD sha256sums and regenerate .SRCINFO:
+sed -i "s/sha256sums=.*/sha256sums=('${SUM}')/" aur/prompt-exporter/PKGBUILD
+( cd aur/prompt-exporter && makepkg --printsrcinfo > .SRCINFO )
+
+git add aur/prompt-exporter
+git commit -m "chore(aur): set sha256 for prompt-exporter 2.0.0"
+git push origin master
+```
+
+### 4. Publish AUR packages
+
+Requires SSH key registered on [AUR](https://aur.archlinux.org) (`ssh aur@aur.archlinux.org`).
+
+```bash
+# First-time package names (if empty clone fails, publish.sh inits and pushes):
+./aur/publish.sh prompt-exporter      # stable 2.0.0
+./aur/publish.sh prompt-exporter-git  # rolling
+```
+
+If `prompt-exporter` or `prompt-exporter-git` does not exist yet on AUR, create them once via the AUR web UI (“Submit”) or by pushing a new empty repo with `git push -u origin master` after the script’s `git init` path — you must be logged in as the maintainer.
+
+### 5. Optional: npm registry
+
+Not required (install via `github:azbarcea/prompt-exporter` works). To publish:
+
+```bash
+npm login
+npm publish --access public
+```
+
+### 6. Smoke after install
+
+```bash
+yay -S prompt-exporter
+prompt-exporter --version   # 2.0.0
+prompt-exporter sources
 ```
 
 ## Develop

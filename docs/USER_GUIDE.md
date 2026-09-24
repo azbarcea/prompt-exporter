@@ -17,6 +17,10 @@ The first source is **chatgpt** (chatgpt.com). Planned next: Claude, Gemini, Cop
 ### Arch Linux (AUR)
 
 ```bash
+# Stable release (recommended)
+yay -S prompt-exporter
+
+# Or track git master
 yay -S prompt-exporter-git
 ```
 
