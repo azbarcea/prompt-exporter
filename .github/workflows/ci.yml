@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build & test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: CLI smoke
+        run: |
+          node dist/index.js --version
+          node dist/index.js --help | grep -q 'prompt-exporter'
+          node dist/index.js chromium start --help | grep -q '9222'
+          node dist/index.js sync --help | grep -q 'no-incremental'
+          node dist/index.js sources | grep -q 'chatgpt'
+          test -f NOTICE
+
+  package-files:
+    name: Package file hygiene
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Ensure dist and docs are present for publish
+        run: |
+          test -f dist/index.js
+          test -f docs/USER_GUIDE.md
+          test -f docs/DEVELOPER.md
+          test -f LICENSE
+          npm pack --dry-run

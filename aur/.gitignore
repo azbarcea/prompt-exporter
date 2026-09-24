@@ -1,0 +1,7 @@
+*.pkg.tar*
+*.pkg.tar.zst
+*.log
+src/
+pkg/
+chatgpt-exporter/
+npm-cache/

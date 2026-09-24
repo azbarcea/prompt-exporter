@@ -1,0 +1,62 @@
+{
+  "name": "prompt-exporter",
+  "version": "2.0.0",
+  "description": "CLI to sync AI conversation prompts from multiple sources (ChatGPT first) to local JSON + Markdown",
+  "license": "Apache-2.0",
+  "author": "Alexandru Zbarcea <alexz@apache.org>",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "prompt-exporter": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && tsx --test tests/",
+    "test:unit": "tsx --test tests/paths.test.ts tests/browser.test.ts",
+    "ci": "npm run typecheck && npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/azbarcea/prompt-exporter.git"
+  },
+  "keywords": [
+    "prompt",
+    "chatgpt",
+    "export",
+    "backup",
+    "cli",
+    "markdown"
+  ],
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "cli-progress": "^3.12.0",
+    "commander": "^14.0.3",
+    "ora": "^9.3.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/cli-progress": "^3.11.5",
+    "@types/node": "^25.3.0",
+    "tsup": "^8.1.0",
+    "tsx": "^4.15.0",
+    "typescript": "^5.4.5"
+  },
+  "bugs": {
+    "url": "https://github.com/azbarcea/prompt-exporter/issues"
+  },
+  "homepage": "https://github.com/azbarcea/prompt-exporter"
+}
