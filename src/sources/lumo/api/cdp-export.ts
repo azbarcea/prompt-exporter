@@ -37,15 +37,9 @@ const EXPORT_EXPRESSION = `(() => {
     if (window.lumoStore && typeof window.lumoStore.getState === 'function') {
       return window.lumoStore;
     }
-    const roots = [
-      document.getElementById('root'),
-      document.getElementById('app'),
-      document.querySelector('[data-testid="lumo-app"]'),
-      document.body,
-    ].filter(Boolean);
 
     const tryFiber = (fiber, depth) => {
-      if (!fiber || depth > 60) return null;
+      if (!fiber || depth > 80) return null;
       const props = fiber.memoizedProps || fiber.pendingProps;
       if (props && props.store && typeof props.store.getState === 'function') {
         return props.store;
@@ -54,27 +48,30 @@ const EXPORT_EXPRESSION = `(() => {
         return props.value.store;
       }
       let hook = fiber.memoizedState;
-      for (let i = 0; hook && i < 80; i++) {
+      for (let i = 0; hook && i < 100; i++) {
         const ms = hook.memoizedState;
         if (ms && ms.store && typeof ms.store.getState === 'function') return ms.store;
         if (ms && typeof ms.getState === 'function' && typeof ms.dispatch === 'function') return ms;
         hook = hook.next;
       }
-      return (
-        tryFiber(fiber.child, depth + 1) ||
-        tryFiber(fiber.sibling, depth + 1)
-      );
+      return tryFiber(fiber.child, depth + 1) || tryFiber(fiber.sibling, depth + 1);
     };
 
-    for (const el of roots) {
-      const key = Object.keys(el).find(
-        (k) => k.startsWith('__reactContainer') || k.startsWith('__reactFiber')
-      );
+    // Lumo has no #root; React mounts on an inner DIV (__reactContainer$).
+    const nodes = document.querySelectorAll('*');
+    for (const el of nodes) {
+      const key = Object.keys(el).find((k) => k.startsWith('__reactContainer'));
       if (!key) continue;
       let fiber = el[key];
       if (fiber && fiber.stateNode) fiber = fiber.stateNode;
       if (fiber && fiber.child) fiber = fiber.child;
       const store = tryFiber(fiber, 0);
+      if (store) return store;
+    }
+    for (const el of nodes) {
+      const key = Object.keys(el).find((k) => k.startsWith('__reactFiber'));
+      if (!key) continue;
+      const store = tryFiber(el[key], 0);
       if (store) return store;
     }
     return null;
@@ -333,17 +330,36 @@ export async function exportLumoViaCdp(
       awaitPromise: true,
       returnByValue: true,
     });
-    const remote = evaluated.result as JsonObject | undefined;
-    if (remote?.exceptionDetails) {
+    // send() already unwraps CDP { result }; Runtime.evaluate → { result: RemoteObject, exceptionDetails? }
+    if (evaluated.exceptionDetails) {
       throw new Error(
-        `Lumo export evaluate failed: ${JSON.stringify(remote.exceptionDetails).slice(0, 400)}`
+        `Lumo export evaluate failed: ${JSON.stringify(evaluated.exceptionDetails).slice(0, 400)}`
       );
     }
-    return (remote?.result as JsonObject | undefined)?.value as JsonObject | undefined;
+    const remote = evaluated.result as JsonObject | undefined;
+    if (!remote) {
+      throw new Error(
+        `Lumo export returned no RemoteObject: ${JSON.stringify(evaluated).slice(0, 300)}`
+      );
+    }
+    if (remote.type === 'undefined' || remote.subtype === 'error') {
+      throw new Error(
+        `Lumo export RemoteObject empty/error: ${JSON.stringify(remote).slice(0, 400)}`
+      );
+    }
+    // Prefer .value (returnByValue); fall back to description
+    if ('value' in remote) {
+      return remote.value as JsonObject | undefined;
+    }
+    throw new Error(
+      `Lumo export missing value (type=${String(remote.type)}): ${JSON.stringify(remote).slice(0, 400)}`
+    );
   });
 
   if (!result || typeof result !== 'object') {
-    throw new Error('Lumo export returned empty result');
+    throw new Error(
+      `Lumo export returned empty result (${String(result)}). Is lumo.proton.me open and logged in on the CDP browser?`
+    );
   }
   if (result.ok === false) {
     throw new Error(String(result.error || 'Lumo export failed'));

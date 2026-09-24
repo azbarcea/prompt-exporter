@@ -20,13 +20,13 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "tsx src/index.ts",
+    "dev": "node --disable-warning=DEP0205 --import tsx src/index.ts",
     "build": "tsup src/index.ts --format esm --dts --clean",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build",
     "typecheck": "tsc --noEmit",
-    "test": "npm run build && tsx --test tests/*.test.ts",
-    "test:unit": "tsx --test tests/*.test.ts",
+    "test": "npm run build && node --disable-warning=DEP0205 --import tsx --test tests/*.test.ts",
+    "test:unit": "node --disable-warning=DEP0205 --import tsx --test tests/*.test.ts",
     "ci": "npm run typecheck && npm run test"
   },
   "repository": {
