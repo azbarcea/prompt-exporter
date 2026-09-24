@@ -20,11 +20,34 @@ The first source is **chatgpt** (chatgpt.com). Planned next: Claude, Gemini, Cop
 yay -S prompt-exporter-git
 ```
 
-### npm / source
+### From GitHub (npm package)
 
 ```bash
 npm install -g github:azbarcea/prompt-exporter
-# or: clone, npm install, npm run build, npm link
+```
+
+### From source
+
+```bash
+git clone https://github.com/azbarcea/prompt-exporter.git
+cd prompt-exporter
+npm install
+npm run build
+```
+
+Install the CLI (pick one):
+
+```bash
+# User scope (recommended)
+npm config set prefix "$HOME/.local"
+npm install -g .
+export PATH="$HOME/.local/bin:$PATH"   # add to shell rc if needed
+
+# Global
+npm install -g .
+
+# Dev link
+npm link
 ```
 
 ## Layout

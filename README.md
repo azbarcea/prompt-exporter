@@ -90,13 +90,48 @@ Layout after sync:
 
 ## Install
 
+### Arch Linux (AUR)
+
 ```bash
 yay -S prompt-exporter-git
-# or
+```
+
+### From GitHub (npm package)
+
+```bash
 npm install -g github:azbarcea/prompt-exporter
-# or from source
+```
+
+### From source
+
+```bash
 git clone https://github.com/azbarcea/prompt-exporter.git
-cd prompt-exporter && npm install && npm run build && npm link
+cd prompt-exporter
+npm install
+npm run build
+```
+
+Then install the CLI onto your PATH — pick one:
+
+```bash
+# User scope (recommended; no root)
+npm config set prefix "$HOME/.local"
+npm install -g .
+# ensure ~/.local/bin is on PATH, e.g. in ~/.bashrc:
+#   export PATH="$HOME/.local/bin:$PATH"
+
+# Or system-wide global
+npm install -g .
+
+# Or link for local development
+npm link
+```
+
+Verify:
+
+```bash
+prompt-exporter --version
+prompt-exporter --help
 ```
 
 ## Quick start
