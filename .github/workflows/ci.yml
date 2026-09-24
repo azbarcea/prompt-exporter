@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [20, 22, 24, 26]
+        node: [24, 26]
 
     steps:
       - name: Checkout
@@ -39,8 +39,7 @@ jobs:
         run: npm run build
 
       - name: Test
-        # Shell-expand the glob. Do not quote it: Node 20 treats a quoted
-        # pattern as a literal path. Do not pass tests/ alone: Node 22+ can
+        # Shell-expand the glob (unquoted). Do not pass tests/ alone: Node can
         # resolve that directory as a package (tests/index.json).
         run: npx tsx --test tests/*.test.ts
 
@@ -61,7 +60,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run build
