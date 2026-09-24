@@ -39,9 +39,10 @@ jobs:
         run: npm run build
 
       - name: Test
-        # Explicit glob: `tsx --test tests/` can resolve tests/ as a package
-        # (looking for tests/index.json) on Node 22+.
-        run: npx tsx --test "tests/**/*.test.ts"
+        # Shell-expand the glob. Do not quote it: Node 20 treats a quoted
+        # pattern as a literal path. Do not pass tests/ alone: Node 22+ can
+        # resolve that directory as a package (tests/index.json).
+        run: npx tsx --test tests/*.test.ts
 
       - name: CLI smoke
         run: |
