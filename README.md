@@ -45,6 +45,21 @@ Backup completed!
 Output directory: /home/john/.prompt-exporter/chatgpt/conversations
 ```
 
+and will find:
+```sh
+.
+├── chatgpt
+│   ├── backup.log
+│   ├── conversations/
+│   │   ├─ <YYYY-mm-dd-HHMM>.<your prompt - .e.g. How to work with prompt-exporter>.md # your prompt as .md
+│   │   ├─ # (...)
+│   │   └─ json/ # (raw data)
+│   └── metadata.json
+├── chromium # (CDP container)
+└── sources
+    └── chatgpt
+```
+
 ## Install
 
 ```bash
