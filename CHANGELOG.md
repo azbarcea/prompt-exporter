@@ -16,6 +16,7 @@
 
 - `--source` flag (default `chatgpt`) and `sources` command
 - Pluggable source registry (`src/sources/`)
+- AUR packages: `prompt-exporter` (stable tags) and `prompt-exporter-git`
 
 ## 1.3.1
 
