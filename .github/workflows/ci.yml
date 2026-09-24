@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [20, 22, 24]
+        node: [20, 22, 24, 26]
 
     steps:
       - name: Checkout
@@ -39,7 +39,9 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm test
+        # Explicit glob: `tsx --test tests/` can resolve tests/ as a package
+        # (looking for tests/index.json) on Node 22+.
+        run: npx tsx --test "tests/**/*.test.ts"
 
       - name: CLI smoke
         run: |
