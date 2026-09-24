@@ -11,7 +11,24 @@ CLI to **sync AI conversation prompts** from multiple sources to your machine as
 **User guide:** [docs/USER_GUIDE.md](./docs/USER_GUIDE.md)  
 **Developer guide:** [docs/DEVELOPER.md](./docs/DEVELOPER.md)
 
-Usage example:
+## What it's good for
+
+- **Consolidate prompts from multiple sources** — Keep ChatGPT (and later other AIs) under one tree: `~/.prompt-exporter/{source}/`, as dated Markdown plus raw JSON.
+- **Continue a conversation in another AI** — Sync, open the matching `.md`, and attach or paste it into Cursor, Claude, Codex, or a local model so the new assistant has the prior thread.
+- **Pair with a `/compact` (or summarize) skill** — Export the full transcript locally, compact it into a handoff brief, then start a fresh session without losing decisions, constraints, or open questions.
+- **Offline archive & search** — Incremental sync gives you a greppable history you control, independent of the vendor UI.
+- **Project-scoped exports** — Pull one ChatGPT project (or the full account) into Markdown for a repo or knowledge base.
+
+### Handoff sketch (export → compact → continue)
+
+```bash
+prompt-exporter sync --source chatgpt
+# Pick ~/.prompt-exporter/chatgpt/conversations/<date>.<title>.md
+# In Cursor: /compact (or your summarize skill) on that file
+# Start a new chat with the compact brief as context
+```
+
+## Usage example
 
 ```bash
 $ prompt-exporter sync --source chatgpt --concurrency 6
@@ -42,22 +59,22 @@ Backup completed!
   Skipped (unchanged): 1354
   Converted 1354 conversations to markdown
 
-Output directory: /home/john/.prompt-exporter/chatgpt/conversations
+Output directory: /home/john/.prompt-exporter/chatgpt
 ```
 
-and will find:
-```sh
-.
+Layout after sync:
+
+```text
+~/.prompt-exporter/
 ├── chatgpt
 │   ├── backup.log
 │   ├── conversations/
-│   │   ├─ <YYYY-mm-dd-HHMM>.<your prompt - .e.g. How to work with prompt-exporter>.md # your prompt as .md
-│   │   ├─ # (...)
-│   │   └─ json/ # (raw data)
+│   │   ├── <YYYY-mm-dd-HHMM>.<title>.md   # readable transcript
+│   │   └── json/                          # raw conversation JSON
 │   └── metadata.json
-├── chromium # (CDP container)
-└── sources
-    └── chatgpt
+├── chromium/                              # --isolated CDP profile only
+└── sources/
+    └── chatgpt/token
 ```
 
 ## Install
@@ -77,15 +94,6 @@ cd prompt-exporter && npm install && npm run build && npm link
 prompt-exporter chromium start
 prompt-exporter sync --source chatgpt
 prompt-exporter sources
-```
-
-Default layout:
-
-```text
-~/.prompt-exporter/
-  chatgpt/conversations/   # *.md + json/
-  sources/chatgpt/token
-  chromium/                # --isolated profile only
 ```
 
 ## License
