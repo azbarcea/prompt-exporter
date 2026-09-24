@@ -10,6 +10,6 @@ pkgbase = prompt-exporter
 	depends = chromium
 	conflicts = prompt-exporter-git
 	source = prompt-exporter-2.0.0.tar.gz::https://github.com/azbarcea/prompt-exporter/archive/refs/tags/v2.0.0.tar.gz
-	sha256sums = SKIP
+	sha256sums = c675442b2d7436792d23100b0611451cc512259bc4951df61d59518158b42bae
 
 pkgname = prompt-exporter
