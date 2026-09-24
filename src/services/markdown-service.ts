@@ -250,8 +250,14 @@ export async function convertDirectory(
       await removeStaleMarkdown(conversationsDir, id, mdName);
       await fs.writeFile(mdPath, markdown, 'utf-8');
       converted++;
-    } catch {
+    } catch (err) {
       errors++;
+      if (process.env.PROMPT_EXPORTER_DEBUG_MD === '1') {
+        console.error(
+          `markdown convert failed for ${jsonPath}:`,
+          err instanceof Error ? err.message : err
+        );
+      }
     }
   }
 
