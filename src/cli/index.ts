@@ -13,6 +13,7 @@ import {
   getSourceDataDir,
 } from '../utils/paths.js';
 import { getSource, listSources, resolveSourceId } from '../sources/registry.js';
+import { getPackageVersion } from '../utils/package-version.js';
 
 function parsePort(value: string): number {
   const port = Number.parseInt(value, 10);
@@ -30,7 +31,7 @@ export function createCli(): Command {
     .description(
       'Export and sync AI conversation prompts from multiple sources to local JSON + Markdown'
     )
-    .version('2.1.0')
+    .version(getPackageVersion())
     .hook('preAction', async () => {
       await ensureHomeLayout();
     })

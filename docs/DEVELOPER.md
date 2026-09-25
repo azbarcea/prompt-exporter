@@ -32,6 +32,7 @@ Ship with the Makefile (order: **npmjs → GitHub → AUR**):
 
 ```bash
 make help
+make bump VERSION=x.y.z   # optional; commits version + CHANGELOG stub
 make release CONFIRM=1
 ```
 
