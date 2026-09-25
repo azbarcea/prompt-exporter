@@ -24,6 +24,16 @@ yay -S prompt-exporter
 yay -S prompt-exporter-git
 ```
 
+The AUR package installs a single bundled binary at `/usr/bin/prompt-exporter` (no `node_modules` on disk).
+
+If you previously used `npm link` / a user install under `~/.local/bin` and then removed that path, bash may still **hash** the old location:
+
+```bash
+type prompt-exporter   # may show hashed ~/.local/bin/...
+hash -r                # clear the command hash table
+type prompt-exporter   # should resolve to /usr/bin/prompt-exporter
+```
+
 ### From GitHub (npm package)
 
 ```bash

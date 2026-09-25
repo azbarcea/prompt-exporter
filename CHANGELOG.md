@@ -10,6 +10,7 @@
 
 - `sources` registry includes `chatgpt` and `lumo`
 - CLI version **2.1.0**
+- **Compact install**: `tsup` bundles + minifies a single `dist/index.cjs`; AUR packages ship only that file to `/usr/bin` (no packaged `node_modules`)
 
 ## 2.0.1
 

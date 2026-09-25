@@ -5,7 +5,7 @@ import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const cli = path.join(root, 'dist', 'index.js');
+const cli = path.join(root, 'dist', 'index.cjs');
 
 function run(args: string[]): { status: number | null; stdout: string; stderr: string } {
   const result = spawnSync(process.execPath, [cli, ...args], {

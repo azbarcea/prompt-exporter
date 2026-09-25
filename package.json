@@ -5,9 +5,9 @@
   "license": "Apache-2.0",
   "author": "Alexandru Zbarcea <alexz@apache.org>",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
   "bin": {
-    "prompt-exporter": "dist/index.js"
+    "prompt-exporter": "dist/index.cjs"
   },
   "files": [
     "dist",
@@ -21,8 +21,8 @@
   },
   "scripts": {
     "dev": "node --disable-warning=DEP0205 --import tsx src/index.ts",
-    "build": "tsup src/index.ts --format esm --dts --clean",
-    "start": "node dist/index.js",
+    "build": "tsup",
+    "start": "node dist/index.cjs",
     "prepublishOnly": "npm run build",
     "typecheck": "tsc --noEmit",
     "test": "npm run build && node --disable-warning=DEP0205 --import tsx --test tests/*.test.ts",

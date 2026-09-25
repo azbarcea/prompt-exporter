@@ -45,11 +45,11 @@ jobs:
 
       - name: CLI smoke
         run: |
-          node dist/index.js --version
-          node dist/index.js --help | grep -q 'prompt-exporter'
-          node dist/index.js chromium start --help | grep -q '9222'
-          node dist/index.js sync --help | grep -q 'no-incremental'
-          node dist/index.js sources | grep -q 'chatgpt'
+          node dist/index.cjs --version
+          node dist/index.cjs --help | grep -q 'prompt-exporter'
+          node dist/index.cjs chromium start --help | grep -q '9222'
+          node dist/index.cjs sync --help | grep -q 'no-incremental'
+          node dist/index.cjs sources | grep -q 'chatgpt'
           test -f NOTICE
 
   package-files:
@@ -66,7 +66,7 @@ jobs:
       - run: npm run build
       - name: Ensure dist and docs are present for publish
         run: |
-          test -f dist/index.js
+          test -f dist/index.cjs
           test -f docs/USER_GUIDE.md
           test -f docs/DEVELOPER.md
           test -f LICENSE

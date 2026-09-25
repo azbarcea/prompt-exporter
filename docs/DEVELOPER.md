@@ -26,6 +26,17 @@ aur/
   publish.sh
 ```
 
+## Build output
+
+`npm run build` uses **tsup** (`tsup.config.ts`) to emit a **single minified CJS** file at `dist/index.cjs` (~500 KB):
+
+- All runtime dependencies are bundled (`noExternal`); Node builtins stay external
+- Version is injected as `__PACKAGE_VERSION__`
+- Shebang comes from `src/index.ts`
+- CJS (not ESM) so bundled deps that use `require()` work at runtime
+
+AUR `package()` installs only that file to `/usr/bin/prompt-exporter` (plus docs/licenses). Do **not** copy `node_modules` into the package.
+
 ## Release
 
 Ship with the Makefile (order: **npmjs → GitHub → AUR**):
