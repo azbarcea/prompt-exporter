@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.0
+
+- added Makefile for build and release automation
+- **`perplexity` source** — sync/list threads from [perplexity.ai](https://www.perplexity.ai/) via undocumented `/rest/thread/*` APIs using a logged-in Chromium CDP session (no official history API; CDP is transport/auth only)
+
 ## 2.1.0
 
 ### Added

@@ -18,6 +18,7 @@ src/
     registry.ts
     chatgpt/               # chatgpt source (api/, index.ts)
     lumo/                  # lumo.proton.me (CDP Redux export)
+    perplexity/            # perplexity.ai (REST via CDP cookies)
   services/                # storage, markdown, backup (source-agnostic)
   utils/                   # paths, credentials, cdp, browser
 aur/
@@ -46,8 +47,6 @@ make help
 make bump VERSION=x.y.z   # optional; commits version + CHANGELOG stub
 make release CONFIRM=1
 ```
-
-Ops checklist: `../prompt-exporter-ops/Release.md` (or sibling ops checkout). Do not publish AUR before the GitHub tag exists; stable AUR pins the GitHub tag tarball sha256.
 
 ## Develop
 

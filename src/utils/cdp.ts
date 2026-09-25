@@ -138,6 +138,19 @@ export function isLumoUrl(url: string): boolean {
   }
 }
 
+export function isPerplexityUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname === 'perplexity.ai' ||
+      parsed.hostname === 'www.perplexity.ai' ||
+      parsed.hostname.endsWith('.perplexity.ai')
+    );
+  } catch {
+    return false;
+  }
+}
+
 function parseTarget(raw: JsonObject): CdpTarget | null {
   if (typeof raw.id !== 'string') return null;
   return {

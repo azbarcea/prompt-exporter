@@ -58,5 +58,6 @@ describe('cli help (built dist)', () => {
     assert.equal(sources.status, 0);
     assert.match(sources.stdout, /chatgpt/);
     assert.match(sources.stdout, /lumo/);
+    assert.match(sources.stdout, /perplexity/);
   });
 });

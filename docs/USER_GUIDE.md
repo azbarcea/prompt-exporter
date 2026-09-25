@@ -8,7 +8,7 @@
 - Re-sync incrementally as chats change
 - Hand transcripts to another AI as context
 
-The first implemented sources are **chatgpt** (chatgpt.com) and **lumo** ([lumo.proton.me](https://lumo.proton.me/)). Planned next: `claude`, `gemini`, `deepseek`, `perplexity`, `copilot` (Microsoft 365), `grok`, and `kimi`.
+The first implemented sources are **chatgpt** (chatgpt.com), **lumo** ([lumo.proton.me](https://lumo.proton.me/)), and **perplexity** ([perplexity.ai](https://www.perplexity.ai/)). Planned next: `claude`, `gemini`, `deepseek`, `copilot` (Microsoft 365), `grok`, and `kimi`.
 
 **Platforms:** Linux is supported today; Windows and macOS are in focus for CDP/browser path parity.
 
@@ -113,6 +113,19 @@ prompt-exporter list --source lumo
 `sync` is incremental by default (skips unchanged `update_time`).
 
 Auth prefers a logged-in Chromium CDP session. Node Bearer alone is often blocked by Cloudflare.
+
+### Perplexity
+
+There is no official public API for thread history. Sync calls Perplexity’s internal REST endpoints (`/rest/thread/list_ask_threads`, `/rest/thread/{uuid}`) from a logged-in Chromium tab (cookies / Cloudflare):
+
+```bash
+prompt-exporter chromium start --url https://www.perplexity.ai/
+# log in; Library threads should be visible
+prompt-exporter sync --source perplexity
+prompt-exporter list --source perplexity
+```
+
+`sync` is incremental by default (skips unchanged `update_time`).
 
 ## Commands
 
