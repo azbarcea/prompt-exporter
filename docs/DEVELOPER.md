@@ -20,6 +20,7 @@ src/
     lumo/                  # lumo.proton.me (CDP Redux export)
     perplexity/            # perplexity.ai (REST via CDP cookies)
   services/                # storage, markdown, backup (source-agnostic)
+  rules/                   # rule-install catalogs + Cursor .mdc templates
   utils/                   # paths, credentials, cdp, browser
 aur/
   prompt-exporter/         # AUR stable (GitHub tag tarball)

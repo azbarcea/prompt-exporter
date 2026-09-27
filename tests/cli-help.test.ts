@@ -60,4 +60,18 @@ describe('cli help (built dist)', () => {
     assert.match(sources.stdout, /lumo/);
     assert.match(sources.stdout, /perplexity/);
   });
+
+  it('documents rule-install', () => {
+    const { status, stdout } = run(['rule-install', '--help']);
+    assert.equal(status, 0);
+    assert.match(stdout, /--destination/);
+    assert.match(stdout, /--force/);
+    assert.match(stdout, /--list/);
+    assert.match(stdout, /\.cursor/);
+
+    const listed = run(['rule-install', '--list']);
+    assert.equal(listed.status, 0);
+    assert.match(listed.stdout, /plans-location/);
+    assert.match(listed.stdout, /journal-logging/);
+  });
 });

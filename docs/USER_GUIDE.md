@@ -144,6 +144,24 @@ prompt-exporter sync --help
 | `sync` / `backup` | Download conversations |
 | `list` | Preview conversations |
 | `projects` | List ChatGPT projects |
+| `rule-install` | Install Cursor workspace rules (`.cursor/rules/`) |
+
+### Cursor workspace rules
+
+Keep plans and session journals **in the repo** (not under `~/.cursor`):
+
+```bash
+# From any Cursor workspace root — installs all cursor rules into ./.cursor
+prompt-exporter rule-install
+
+# Explicit (same defaults)
+prompt-exporter rule-install --source cursor --destination .cursor journal-logging,plans-location
+
+prompt-exporter rule-install --list
+prompt-exporter rule-install plans-location --force   # overwrite
+```
+
+Creates `.cursor/rules/*.mdc` plus empty `.cursor/plans/` and `.cursor/journal/` as needed.
 
 ## Privacy
 

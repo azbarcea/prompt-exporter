@@ -8,6 +8,7 @@ import {
 import { chromiumStartCommand } from './commands/chromium.js';
 import { listCommand } from './commands/list.js';
 import { projectsCommand } from './commands/projects.js';
+import { ruleInstallCommand } from './commands/rule-install.js';
 import { tokenCommand } from './commands/token.js';
 import { loadSavedToken } from '../utils/credentials.js';
 import {
@@ -18,7 +19,7 @@ import {
 } from '../utils/paths.js';
 import { getSource, listSources, resolveSourceId } from '../sources/registry.js';
 import { getPackageVersion } from '../utils/package-version.js';
-
+import { listRulePacks } from '../rules/catalog.js';
 function parsePort(value: string): number {
   const port = Number.parseInt(value, 10);
   if (!Number.isFinite(port) || port < 1 || port > 65535) {
@@ -57,6 +58,7 @@ export function createCli(): Command {
         '  prompt-exporter sync --source lumo',
         '  prompt-exporter chromium start --url https://www.perplexity.ai/',
         '  prompt-exporter sync --source perplexity',
+        '  prompt-exporter rule-install --source cursor',
         '',
         'Data: ~/.prompt-exporter/{source}/conversations/',
       ].join('\n')
@@ -410,6 +412,53 @@ export function createCli(): Command {
         });
       })
   );
+
+  program
+    .command('rule-install')
+    .description(
+      'Install Cursor workspace rules (plans/journals under .cursor/, not ~/.cursor)'
+    )
+    .argument(
+      '[rules...]',
+      'Rule ids (space or comma separated); omit to install all for --source'
+    )
+    .option(
+      '-s, --source <id>',
+      `Rule pack (${listRulePacks()
+        .map((p) => p.id)
+        .join('|')})`,
+      'cursor'
+    )
+    .option(
+      '-d, --destination <dir>',
+      'Cursor project config root (rules written to <dir>/rules/)',
+      '.cursor'
+    )
+    .option('--force', 'Overwrite existing rule files', false)
+    .option('--list', 'List available rules for --source (no install)', false)
+    .option('--json', 'Output as JSON', false)
+    .addHelpText(
+      'after',
+      [
+        '',
+        'Examples:',
+        '  prompt-exporter rule-install',
+        '  prompt-exporter rule-install --source cursor --destination .cursor',
+        '  prompt-exporter rule-install journal-logging,plans-location',
+        '  prompt-exporter rule-install plans-location --force',
+        '  prompt-exporter rule-install --list',
+      ].join('\n')
+    )
+    .action(async (rules: string[], options) => {
+      await ruleInstallCommand({
+        source: options.source,
+        destination: options.destination,
+        force: options.force,
+        list: options.list,
+        json: options.json,
+        rules,
+      });
+    });
 
   return program;
 }
