@@ -21,6 +21,7 @@ src/
     perplexity/            # perplexity.ai (REST via CDP cookies)
   services/                # storage, markdown, backup (source-agnostic)
   rules/                   # rule-install catalogs + Cursor .mdc templates
+  skills/                  # skill registries + GitHub install into .cursor/skills
   utils/                   # paths, credentials, cdp, browser
 aur/
   prompt-exporter/         # AUR stable (GitHub tag tarball)

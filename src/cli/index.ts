@@ -9,6 +9,12 @@ import { chromiumStartCommand } from './commands/chromium.js';
 import { listCommand } from './commands/list.js';
 import { projectsCommand } from './commands/projects.js';
 import { ruleInstallCommand } from './commands/rule-install.js';
+import { skillInstallCommand } from './commands/skill-install.js';
+import {
+  skillRegistryAddCommand,
+  skillRegistryListCommand,
+  skillRegistryRemoveCommand,
+} from './commands/skill-registry.js';
 import { tokenCommand } from './commands/token.js';
 import { loadSavedToken } from '../utils/credentials.js';
 import {
@@ -20,6 +26,7 @@ import {
 import { getSource, listSources, resolveSourceId } from '../sources/registry.js';
 import { getPackageVersion } from '../utils/package-version.js';
 import { listRulePacks } from '../rules/catalog.js';
+import { DEFAULT_SKILL_REGISTRY_ID } from '../skills/registries.js';
 function parsePort(value: string): number {
   const port = Number.parseInt(value, 10);
   if (!Number.isFinite(port) || port < 1 || port > 65535) {
@@ -50,6 +57,7 @@ export function createCli(): Command {
         '  PROMPT_EXPORTER_BROWSER         Chromium binary path',
         '  PROMPT_EXPORTER_CDP_PORT        Preferred CDP port (auto-discovers 9222/9223/…)',
         '  PROMPT_EXPORTER_CHATGPT_TOKEN  Optional Bearer fallback for chatgpt source',
+        '  PROMPT_EXPORTER_GITHUB_TOKEN   Optional GitHub token for skill-install API',
         '',
         'Typical flow:',
         '  prompt-exporter chromium start',
@@ -59,6 +67,7 @@ export function createCli(): Command {
         '  prompt-exporter chromium start --url https://www.perplexity.ai/',
         '  prompt-exporter sync --source perplexity',
         '  prompt-exporter rule-install --source cursor',
+        '  prompt-exporter skill-install --registry awesome-cursor-skills --list',
         '',
         'Data: ~/.prompt-exporter/{source}/conversations/',
       ].join('\n')
@@ -458,6 +467,122 @@ export function createCli(): Command {
         json: options.json,
         rules,
       });
+    });
+
+  program
+    .command('skill-install')
+    .description(
+      'Install Cursor agent skills from a skills registry into .cursor/skills/'
+    )
+    .argument(
+      '[skills...]',
+      'Skill ids (space or comma separated); required unless --list / --all'
+    )
+    .option(
+      '-r, --registry <id>',
+      `Skills registry (default: ${DEFAULT_SKILL_REGISTRY_ID})`,
+      DEFAULT_SKILL_REGISTRY_ID
+    )
+    .option(
+      '-d, --destination <dir>',
+      'Cursor project config root (skills written to <dir>/skills/)',
+      '.cursor'
+    )
+    .option('--force', 'Overwrite existing skill directories', false)
+    .option(
+      '--list',
+      'List skills in --registry (default: awesome-cursor-skills)',
+      false
+    )
+    .option(
+      '--descriptions',
+      'With --list, fetch SKILL.md descriptions (more API calls)',
+      false
+    )
+    .option('--all', 'Install every skill in the registry', false)
+    .option('--json', 'Output as JSON', false)
+    .addHelpText(
+      'after',
+      [
+        '',
+        'Default registry: awesome-cursor-skills',
+        '  https://github.com/spencerpauly/awesome-cursor-skills/tree/main/resources',
+        '',
+        'Examples:',
+        '  prompt-exporter skill-install --list',
+        '  prompt-exporter skill-install --registry awesome-cursor-skills --list',
+        '  prompt-exporter skill-install writing-commit-messages creating-pr',
+        '  prompt-exporter skill-install --registry awesome-cursor-skills writing-commit-messages --force',
+        '',
+        'Manage registries: prompt-exporter skill-registry --help',
+      ].join('\n')
+    )
+    .action(async (skills: string[], options) => {
+      await skillInstallCommand({
+        registry: options.registry,
+        destination: options.destination,
+        force: options.force,
+        list: options.list,
+        all: options.all,
+        descriptions: options.descriptions,
+        json: options.json,
+        skills,
+      });
+    });
+
+  const skillRegistry = program
+    .command('skill-registry')
+    .description('Manage skills registries (GitHub catalogs of SKILL.md trees)');
+
+  skillRegistry
+    .command('list')
+    .description('List built-in and user skills registries')
+    .option('--json', 'Output as JSON', false)
+    .action(async (options) => {
+      await skillRegistryListCommand({ json: options.json });
+    });
+
+  skillRegistry
+    .command('add')
+    .description('Add a user skills registry')
+    .argument('<id>', 'Registry id (e.g. my-team-skills)')
+    .argument(
+      '<source>',
+      'GitHub owner/repo or https://github.com/owner/repo[/tree/ref/path]'
+    )
+    .option(
+      '--path <dir>',
+      'Directory of skill folders in the repo (default: skills, or path from URL)'
+    )
+    .option('--ref <ref>', 'Git branch or tag (default: main, or from URL)')
+    .option('--label <label>', 'Display name')
+    .option('--description <text>', 'Short description')
+    .addHelpText(
+      'after',
+      [
+        '',
+        'Examples:',
+        '  prompt-exporter skill-registry add acs spencerpauly/awesome-cursor-skills --path resources',
+        '  prompt-exporter skill-registry add acs https://github.com/spencerpauly/awesome-cursor-skills/tree/main/resources',
+      ].join('\n')
+    )
+    .action(async (id: string, source: string, options) => {
+      await skillRegistryAddCommand({
+        id,
+        source,
+        path: options.path,
+        ref: options.ref,
+        label: options.label,
+        description: options.description,
+      });
+    });
+
+  skillRegistry
+    .command('remove')
+    .description('Remove a user skills registry')
+    .argument('<id>', 'Registry id')
+    .action(async (id: string) => {
+      await skillRegistryRemoveCommand(id);
     });
 
   return program;

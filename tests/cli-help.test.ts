@@ -74,4 +74,22 @@ describe('cli help (built dist)', () => {
     assert.match(listed.stdout, /plans-location/);
     assert.match(listed.stdout, /journal-logging/);
   });
+
+  it('documents skill-install and skill-registry', () => {
+    const install = run(['skill-install', '--help']);
+    assert.equal(install.status, 0);
+    assert.match(install.stdout, /--registry/);
+    assert.match(install.stdout, /awesome-cursor-skills/);
+    assert.match(install.stdout, /\.cursor\/skills/);
+
+    const reg = run(['skill-registry', '--help']);
+    assert.equal(reg.status, 0);
+    assert.match(reg.stdout, /list/);
+    assert.match(reg.stdout, /add/);
+    assert.match(reg.stdout, /remove/);
+
+    const listed = run(['skill-registry', 'list']);
+    assert.equal(listed.status, 0);
+    assert.match(listed.stdout, /awesome-cursor-skills/);
+  });
 });

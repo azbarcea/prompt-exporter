@@ -145,6 +145,8 @@ prompt-exporter sync --help
 | `list` | Preview conversations |
 | `projects` | List ChatGPT projects |
 | `rule-install` | Install Cursor workspace rules (`.cursor/rules/`) |
+| `skill-install` | Install skills from a registry into `.cursor/skills/` |
+| `skill-registry` | List / add / remove skills registries |
 
 ### Cursor workspace rules
 
@@ -162,6 +164,23 @@ prompt-exporter rule-install plans-location --force   # overwrite
 ```
 
 Creates `.cursor/rules/*.mdc` plus empty `.cursor/plans/` and `.cursor/journal/` as needed.
+
+### Skills registries
+
+Install Cursor agent skills (`SKILL.md` folders) from GitHub catalogs into `.cursor/skills/`:
+
+```bash
+# Built-in registry → spencerpauly/awesome-cursor-skills/resources
+prompt-exporter skill-registry list
+prompt-exporter skill-install --list
+prompt-exporter skill-install writing-commit-messages creating-pr
+
+# Add another catalog (owner/repo or full tree URL)
+prompt-exporter skill-registry add team https://github.com/org/skills/tree/main/skills
+prompt-exporter skill-install --registry team some-skill
+```
+
+Optional: `PROMPT_EXPORTER_GITHUB_TOKEN` or `GITHUB_TOKEN` for higher GitHub API rate limits.
 
 ## Privacy
 
