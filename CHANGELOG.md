@@ -5,7 +5,7 @@
 - added Makefile for build and release automation
 - **`perplexity` source** — sync/list threads from [perplexity.ai](https://www.perplexity.ai/) via undocumented `/rest/thread/*` APIs using a logged-in Chromium CDP session (no official history API; CDP is transport/auth only)
 - **`rule-install`** — install Cursor workspace rules (`plans-location`, `journal-logging`) under `.cursor/rules/` so plans/journals stay in-repo instead of `~/.cursor`
-- **Skills registries** — `skill-registry` / `skill-install` pull Cursor `SKILL.md` trees from GitHub catalogs (built-in: [awesome-cursor-skills](https://github.com/spencerpauly/awesome-cursor-skills/tree/main/resources)) into `.cursor/skills/`
+- **Skills registries** — `skill-registry` / `skill-install` pull Cursor `SKILL.md` trees from GitHub/GitLab/Codeberg catalogs (built-ins include awesome-cursor-skills, Vercel, Anthropic, Matt Pocock, PostHog, Sentry, Obra Superpowers, GitLab AI skills, sbstjn) into `.cursor/skills/`
 
 ## 2.1.0
 

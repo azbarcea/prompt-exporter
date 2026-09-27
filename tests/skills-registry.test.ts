@@ -72,6 +72,7 @@ function mockFetch(routes: Record<string, unknown | string>): FetchLike {
 describe('parseGithubSource', () => {
   it('parses owner/repo and tree URLs', () => {
     assert.deepEqual(parseGithubSource('spencerpauly/awesome-cursor-skills'), {
+      host: 'github',
       github: 'spencerpauly/awesome-cursor-skills',
     });
     assert.deepEqual(
@@ -79,21 +80,49 @@ describe('parseGithubSource', () => {
         'https://github.com/spencerpauly/awesome-cursor-skills/tree/main/resources'
       ),
       {
+        host: 'github',
         github: 'spencerpauly/awesome-cursor-skills',
         ref: 'main',
         skillsPath: 'resources',
       }
     );
   });
+
+  it('parses gitlab and codeberg URLs', () => {
+    assert.deepEqual(
+      parseGithubSource(
+        'https://gitlab.com/gitlab-org/ai/skills/-/tree/main/skills'
+      ),
+      {
+        host: 'gitlab',
+        github: 'gitlab-org/ai/skills',
+        ref: 'main',
+        skillsPath: 'skills',
+      }
+    );
+    assert.deepEqual(
+      parseGithubSource('https://codeberg.org/sbstjn/skills'),
+      {
+        host: 'codeberg',
+        github: 'sbstjn/skills',
+      }
+    );
+  });
 });
 
 describe('listBuiltinRegistries', () => {
-  it('includes awesome-cursor-skills pointing at resources/', () => {
+  it('includes recommended public catalogs across forges', () => {
     const builtins = listBuiltinRegistries();
-    const acs = builtins.find((r) => r.id === 'awesome-cursor-skills');
-    assert.ok(acs);
-    assert.equal(acs!.github, 'spencerpauly/awesome-cursor-skills');
-    assert.equal(acs!.skillsPath, 'resources');
+    const byId = Object.fromEntries(builtins.map((r) => [r.id, r]));
+    assert.equal(byId['awesome-cursor-skills']?.skillsPath, 'resources');
+    assert.equal(byId['vercel-agent-skills']?.github, 'vercel-labs/agent-skills');
+    assert.equal(byId['anthropic-skills']?.github, 'anthropics/skills');
+    assert.equal(byId['mattpocock-skills']?.nested, true);
+    assert.equal(byId['posthog-skills']?.nested, true);
+    assert.equal(byId['sentry-skills']?.github, 'getsentry/skills');
+    assert.equal(byId['obra-superpowers']?.github, 'obra/superpowers');
+    assert.equal(byId['gitlab-ai-skills']?.host, 'gitlab');
+    assert.equal(byId['sbstjn-skills']?.host, 'codeberg');
   });
 });
 
@@ -128,6 +157,13 @@ description: Write conventional commits
             'https://raw.githubusercontent.com/acme/skills-repo/main/resources/writing-commit-messages/SKILL.md',
         },
       ],
+      '/repos/acme/skills-repo/contents/resources/creating-pr?': [
+        {
+          name: 'SKILL.md',
+          path: 'resources/creating-pr/SKILL.md',
+          type: 'file',
+        },
+      ],
       'resources/writing-commit-messages/SKILL.md': skillMd,
     });
 
@@ -139,6 +175,7 @@ description: Write conventional commits
 
     const files = await fetchSkillBundle(registry, 'writing-commit-messages', {
       fetchImpl,
+      resolvedPath: 'resources/writing-commit-messages',
     });
     assert.equal(files.length, 1);
     assert.equal(files[0]!.relativePath, 'SKILL.md');
@@ -151,6 +188,7 @@ description: Write conventional commits
         destination: '.cursor',
         cwd: tmp,
         fetchImpl,
+        remoteIndex: listed,
       });
       assert.equal(results[0]?.status, 'created');
       const written = await fs.readFile(
@@ -165,11 +203,42 @@ description: Write conventional commits
         destination: '.cursor',
         cwd: tmp,
         fetchImpl,
+        remoteIndex: listed,
       });
       assert.equal(again.results[0]?.status, 'skipped');
     } finally {
       await fs.rm(tmp, { recursive: true, force: true });
     }
+  });
+
+  it('discovers nested category/skill layouts', async () => {
+    const nestedReg: SkillRegistry = {
+      ...registry,
+      id: 'nested',
+      nested: true,
+      skillsPath: 'skills',
+    };
+    const fetchImpl = mockFetch({
+      '/repos/acme/skills-repo/contents/skills?': [
+        { name: 'engineering', path: 'skills/engineering', type: 'dir' },
+        { name: 'README.md', path: 'skills/README.md', type: 'file' },
+      ],
+      '/repos/acme/skills-repo/contents/skills/engineering?': [
+        { name: 'tdd', path: 'skills/engineering/tdd', type: 'dir' },
+        { name: 'notes.md', path: 'skills/engineering/notes.md', type: 'file' },
+      ],
+      '/repos/acme/skills-repo/contents/skills/engineering/tdd?': [
+        {
+          name: 'SKILL.md',
+          path: 'skills/engineering/tdd/SKILL.md',
+          type: 'file',
+        },
+      ],
+    });
+    const listed = await listRemoteSkills(nestedReg, { fetchImpl });
+    assert.deepEqual(listed, [
+      { id: 'tdd', path: 'skills/engineering/tdd' },
+    ]);
   });
 });
 

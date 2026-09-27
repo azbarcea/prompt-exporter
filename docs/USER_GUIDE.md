@@ -167,20 +167,29 @@ Creates `.cursor/rules/*.mdc` plus empty `.cursor/plans/` and `.cursor/journal/`
 
 ### Skills registries
 
-Install Cursor agent skills (`SKILL.md` folders) from GitHub catalogs into `.cursor/skills/`:
+Install Cursor agent skills (`SKILL.md` folders) from public catalogs into `.cursor/skills/`:
 
 ```bash
-# Built-in registry → spencerpauly/awesome-cursor-skills/resources
 prompt-exporter skill-registry list
 prompt-exporter skill-install --list
 prompt-exporter skill-install writing-commit-messages creating-pr
 
-# Add another catalog (owner/repo or full tree URL)
-prompt-exporter skill-registry add team https://github.com/org/skills/tree/main/skills
-prompt-exporter skill-install --registry team some-skill
+# Other built-in registries
+prompt-exporter skill-install --registry vercel-agent-skills --list
+prompt-exporter skill-install --registry mattpocock-skills tdd grill-me
+prompt-exporter skill-install --registry gitlab-ai-skills mr-review
+prompt-exporter skill-install --registry sbstjn-skills typescript
+
+# Add another catalog (GitHub / GitLab / Codeberg)
+prompt-exporter skill-registry add team \
+  https://github.com/org/skills/tree/main/skills
+prompt-exporter skill-registry add gl \
+  https://gitlab.com/gitlab-org/ai/skills/-/tree/main/skills
 ```
 
-Optional: `PROMPT_EXPORTER_GITHUB_TOKEN` or `GITHUB_TOKEN` for higher GitHub API rate limits.
+Built-in registries: `awesome-cursor-skills`, `vercel-agent-skills`, `anthropic-skills`, `mattpocock-skills` (nested), `posthog-skills` (nested), `sentry-skills`, `obra-superpowers`, `gitlab-ai-skills`, `sbstjn-skills` (Codeberg).
+
+Optional tokens: `PROMPT_EXPORTER_GITHUB_TOKEN` / `GITHUB_TOKEN`, `PROMPT_EXPORTER_GITLAB_TOKEN` / `GITLAB_TOKEN`.
 
 ## Privacy
 

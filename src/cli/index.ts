@@ -58,6 +58,7 @@ export function createCli(): Command {
         '  PROMPT_EXPORTER_CDP_PORT        Preferred CDP port (auto-discovers 9222/9223/…)',
         '  PROMPT_EXPORTER_CHATGPT_TOKEN  Optional Bearer fallback for chatgpt source',
         '  PROMPT_EXPORTER_GITHUB_TOKEN   Optional GitHub token for skill-install API',
+        '  PROMPT_EXPORTER_GITLAB_TOKEN   Optional GitLab token for skill-install API',
         '',
         'Typical flow:',
         '  prompt-exporter chromium start',
@@ -532,7 +533,9 @@ export function createCli(): Command {
 
   const skillRegistry = program
     .command('skill-registry')
-    .description('Manage skills registries (GitHub catalogs of SKILL.md trees)');
+    .description(
+      'Manage skills registries (GitHub / GitLab / Codeberg catalogs of SKILL.md trees)'
+    );
 
   skillRegistry
     .command('list')
@@ -548,13 +551,22 @@ export function createCli(): Command {
     .argument('<id>', 'Registry id (e.g. my-team-skills)')
     .argument(
       '<source>',
-      'GitHub owner/repo or https://github.com/owner/repo[/tree/ref/path]'
+      'owner/repo or https://github.com|gitlab.com|codeberg.org/…[/tree/…]'
+    )
+    .option(
+      '--host <host>',
+      'Forge: github | gitlab | codeberg (default: inferred from URL, else github)'
     )
     .option(
       '--path <dir>',
       'Directory of skill folders in the repo (default: skills, or path from URL)'
     )
     .option('--ref <ref>', 'Git branch or tag (default: main, or from URL)')
+    .option(
+      '--nested',
+      'Discover skills one level deeper (category/skill layouts)',
+      false
+    )
     .option('--label <label>', 'Display name')
     .option('--description <text>', 'Short description')
     .addHelpText(
@@ -564,6 +576,8 @@ export function createCli(): Command {
         'Examples:',
         '  prompt-exporter skill-registry add acs spencerpauly/awesome-cursor-skills --path resources',
         '  prompt-exporter skill-registry add acs https://github.com/spencerpauly/awesome-cursor-skills/tree/main/resources',
+        '  prompt-exporter skill-registry add gl https://gitlab.com/gitlab-org/ai/skills/-/tree/main/skills --host gitlab',
+        '  prompt-exporter skill-registry add mp mattpocock/skills --nested',
       ].join('\n')
     )
     .action(async (id: string, source: string, options) => {
@@ -572,6 +586,8 @@ export function createCli(): Command {
         source,
         path: options.path,
         ref: options.ref,
+        host: options.host,
+        nested: options.nested,
         label: options.label,
         description: options.description,
       });

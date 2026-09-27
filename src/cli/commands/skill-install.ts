@@ -1,5 +1,8 @@
 import chalk from 'chalk';
-import { listRemoteSkills } from '../../skills/github.js';
+import {
+  listRemoteSkills,
+  resolveSkillEntry,
+} from '../../skills/github.js';
 import { installSkills } from '../../skills/install.js';
 import {
   getRegistry,
@@ -23,6 +26,7 @@ export async function skillInstallCommand(
 ): Promise<void> {
   const registryId = resolveRegistryId(options.registry);
   const registry = await getRegistry(registryId);
+  const host = registry.host ?? 'github';
 
   if (options.list) {
     const skills = await listRemoteSkills(registry, {
@@ -34,9 +38,11 @@ export async function skillInstallCommand(
           {
             registry: {
               id: registry.id,
+              host,
               github: registry.github,
               skillsPath: registry.skillsPath,
               ref: registry.ref,
+              nested: !!registry.nested,
             },
             skills,
           },
@@ -50,7 +56,9 @@ export async function skillInstallCommand(
     console.log(
       chalk.bold(`Skills in ${registry.id}`) +
         chalk.dim(
-          ` (${registry.github}/${registry.skillsPath}@${registry.ref})`
+          ` (${host}:${registry.github}/${registry.skillsPath}@${registry.ref}` +
+            (registry.nested ? ', nested' : '') +
+            ')'
         )
     );
     for (const s of skills) {
@@ -67,8 +75,8 @@ export async function skillInstallCommand(
   }
 
   let skillIds = parseCommaIds(options.skills ?? []);
+  const remote = await listRemoteSkills(registry);
   if (options.all) {
-    const remote = await listRemoteSkills(registry);
     skillIds = remote.map((s) => s.id);
   }
   if (skillIds.length === 0) {
@@ -77,10 +85,7 @@ export async function skillInstallCommand(
     );
   }
 
-  // Validate ids exist remotely (fail fast on typos)
-  const remote = await listRemoteSkills(registry);
-  const known = new Set(remote.map((s) => s.id));
-  const missing = skillIds.filter((id) => !known.has(id));
+  const missing = skillIds.filter((id) => !resolveSkillEntry(remote, id));
   if (missing.length) {
     throw new Error(
       `Unknown skill(s) in registry "${registryId}": ${missing.join(', ')}`
@@ -93,6 +98,7 @@ export async function skillInstallCommand(
     skillIds,
     destination,
     force: options.force === true,
+    remoteIndex: remote,
   });
 
   if (options.json) {

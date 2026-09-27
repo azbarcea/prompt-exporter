@@ -1,4 +1,9 @@
-import type { SkillFile, SkillIndexEntry, SkillRegistry } from './types.js';
+import type {
+  SkillFile,
+  SkillIndexEntry,
+  SkillHost,
+  SkillRegistry,
+} from './types.js';
 
 export type FetchLike = (
   input: string,
@@ -11,72 +16,161 @@ export type FetchLike = (
   json(): Promise<unknown>;
 }>;
 
-type GhContentItem = {
+type DirEntry = {
   name: string;
   path: string;
-  type: 'file' | 'dir' | string;
-  download_url?: string | null;
-  size?: number;
+  type: 'file' | 'dir';
+  downloadUrl?: string | null;
 };
 
-function githubHeaders(): Record<string, string> {
+function hostOf(registry: SkillRegistry): SkillHost {
+  return registry.host ?? 'github';
+}
+
+function apiHeaders(host: SkillHost): Record<string, string> {
   const headers: Record<string, string> = {
-    Accept: 'application/vnd.github+json',
     'User-Agent': 'prompt-exporter',
-    'X-GitHub-Api-Version': '2022-11-28',
+    Accept: 'application/json',
   };
-  const token =
-    process.env.PROMPT_EXPORTER_GITHUB_TOKEN?.trim() ||
-    process.env.GITHUB_TOKEN?.trim();
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+  if (host === 'github') {
+    headers.Accept = 'application/vnd.github+json';
+    headers['X-GitHub-Api-Version'] = '2022-11-28';
+    const token =
+      process.env.PROMPT_EXPORTER_GITHUB_TOKEN?.trim() ||
+      process.env.GITHUB_TOKEN?.trim();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  } else if (host === 'gitlab') {
+    const token =
+      process.env.PROMPT_EXPORTER_GITLAB_TOKEN?.trim() ||
+      process.env.GITLAB_TOKEN?.trim();
+    if (token) headers['PRIVATE-TOKEN'] = token;
   }
   return headers;
 }
 
-async function githubJson(
+async function apiJson(
   url: string,
+  host: SkillHost,
   fetchImpl: FetchLike
 ): Promise<unknown> {
-  const res = await fetchImpl(url, { headers: githubHeaders() });
+  const res = await fetchImpl(url, { headers: apiHeaders(host) });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(
-      `GitHub API ${res.status} ${res.statusText} for ${url}` +
+      `${host} API ${res.status} ${res.statusText} for ${url}` +
         (body ? `: ${body.slice(0, 200)}` : '')
     );
   }
   return res.json();
 }
 
-function contentsUrl(registry: SkillRegistry, dirPath: string): string {
+async function listDir(
+  registry: SkillRegistry,
+  dirPath: string,
+  fetchImpl: FetchLike
+): Promise<DirEntry[]> {
+  const host = hostOf(registry);
   const clean = dirPath.replace(/^\/+|\/+$/g, '');
-  const base = `https://api.github.com/repos/${registry.github}/contents/${clean}`;
-  return `${base}?ref=${encodeURIComponent(registry.ref)}`;
+
+  if (host === 'github' || host === 'codeberg') {
+    const apiBase =
+      host === 'github'
+        ? `https://api.github.com/repos/${registry.github}`
+        : `https://codeberg.org/api/v1/repos/${registry.github}`;
+    const url = `${apiBase}/contents/${clean}?ref=${encodeURIComponent(registry.ref)}`;
+    const data = await apiJson(url, host, fetchImpl);
+    if (!Array.isArray(data)) {
+      throw new Error(`Expected directory listing for ${registry.github}/${clean}`);
+    }
+    return (data as Array<Record<string, unknown>>).map((item) => ({
+      name: String(item.name ?? ''),
+      path: String(item.path ?? ''),
+      type: item.type === 'dir' ? 'dir' : 'file',
+      downloadUrl:
+        typeof item.download_url === 'string' ? item.download_url : null,
+    }));
+  }
+
+  // GitLab
+  const project = encodeURIComponent(registry.github);
+  const url =
+    `https://gitlab.com/api/v4/projects/${project}/repository/tree` +
+    `?path=${encodeURIComponent(clean)}&ref=${encodeURIComponent(registry.ref)}&per_page=100`;
+  const data = await apiJson(url, host, fetchImpl);
+  if (!Array.isArray(data)) {
+    throw new Error(`Expected directory listing for ${registry.github}/${clean}`);
+  }
+  return (data as Array<Record<string, unknown>>).map((item) => ({
+    name: String(item.name ?? ''),
+    path: String(item.path ?? ''),
+    type: item.type === 'tree' ? 'dir' : 'file',
+    downloadUrl: null,
+  }));
+}
+
+function rawFileUrl(registry: SkillRegistry, filePath: string): string {
+  const host = hostOf(registry);
+  const clean = filePath.replace(/^\/+/, '');
+  if (host === 'github') {
+    return `https://raw.githubusercontent.com/${registry.github}/${registry.ref}/${clean}`;
+  }
+  if (host === 'codeberg') {
+    return `https://codeberg.org/${registry.github}/raw/branch/${registry.ref}/${clean}`;
+  }
+  return `https://gitlab.com/${registry.github}/-/raw/${registry.ref}/${clean}`;
+}
+
+async function dirHasSkillMd(
+  registry: SkillRegistry,
+  dirPath: string,
+  fetchImpl: FetchLike
+): Promise<boolean> {
+  const entries = await listDir(registry, dirPath, fetchImpl);
+  return entries.some((e) => e.type === 'file' && e.name === 'SKILL.md');
+}
+
+function assignUniqueIds(entries: SkillIndexEntry[]): SkillIndexEntry[] {
+  const counts = new Map<string, number>();
+  for (const e of entries) {
+    counts.set(e.id, (counts.get(e.id) ?? 0) + 1);
+  }
+  return entries.map((e) => {
+    if ((counts.get(e.id) ?? 0) <= 1) return e;
+    const parent = e.path.split('/').slice(-2, -1)[0];
+    return parent ? { ...e, id: `${parent}/${e.id}` } : e;
+  });
 }
 
 /**
- * List skill folders (directories) under the registry skillsPath.
+ * List skill folders under the registry skillsPath.
+ * With nested=true, also finds skills/category/skill layouts.
  */
 export async function listRemoteSkills(
   registry: SkillRegistry,
   options: { fetchImpl?: FetchLike; withDescriptions?: boolean } = {}
 ): Promise<SkillIndexEntry[]> {
   const fetchImpl = options.fetchImpl ?? (globalThis.fetch as FetchLike);
-  const data = await githubJson(
-    contentsUrl(registry, registry.skillsPath),
-    fetchImpl
-  );
-  if (!Array.isArray(data)) {
-    throw new Error(
-      `Expected directory listing for ${registry.github}/${registry.skillsPath}`
-    );
+  const top = await listDir(registry, registry.skillsPath, fetchImpl);
+  const dirs = top.filter((i) => i.type === 'dir' && !i.name.startsWith('.'));
+  const found: SkillIndexEntry[] = [];
+
+  for (const dir of dirs) {
+    const isSkill = await dirHasSkillMd(registry, dir.path, fetchImpl);
+    if (isSkill) {
+      found.push({ id: dir.name, path: dir.path });
+      continue;
+    }
+    if (!registry.nested) continue;
+    const children = await listDir(registry, dir.path, fetchImpl);
+    for (const child of children) {
+      if (child.type !== 'dir' || child.name.startsWith('.')) continue;
+      if (await dirHasSkillMd(registry, child.path, fetchImpl)) {
+        found.push({ id: child.name, path: child.path });
+      }
+    }
   }
-  const dirs = (data as GhContentItem[]).filter((i) => i.type === 'dir');
-  const entries: SkillIndexEntry[] = dirs.map((d) => ({
-    id: d.name,
-    path: d.path,
-  }));
+
+  const entries = assignUniqueIds(found);
 
   if (options.withDescriptions) {
     await Promise.all(
@@ -84,11 +178,11 @@ export async function listRemoteSkills(
         try {
           entry.description = await fetchSkillDescription(
             registry,
-            entry.id,
+            entry.path,
             fetchImpl
           );
         } catch {
-          // optional metadata
+          // optional
         }
       })
     );
@@ -99,11 +193,10 @@ export async function listRemoteSkills(
 
 async function fetchSkillDescription(
   registry: SkillRegistry,
-  skillId: string,
+  skillPath: string,
   fetchImpl: FetchLike
 ): Promise<string | undefined> {
-  const skillMdPath = `${registry.skillsPath}/${skillId}/SKILL.md`;
-  const rawUrl = `https://raw.githubusercontent.com/${registry.github}/${registry.ref}/${skillMdPath}`;
+  const rawUrl = rawFileUrl(registry, `${skillPath}/SKILL.md`);
   const res = await fetchImpl(rawUrl, {
     headers: { 'User-Agent': 'prompt-exporter', Accept: 'text/plain' },
   });
@@ -123,29 +216,36 @@ async function fetchSkillDescription(
 
 /**
  * Download all files under a skill folder (SKILL.md + companions).
+ * `skillPath` is repo-relative (from SkillIndexEntry.path).
  */
 export async function fetchSkillBundle(
   registry: SkillRegistry,
-  skillId: string,
-  options: { fetchImpl?: FetchLike } = {}
+  skillPathOrId: string,
+  options: { fetchImpl?: FetchLike; resolvedPath?: string } = {}
 ): Promise<SkillFile[]> {
   const fetchImpl = options.fetchImpl ?? (globalThis.fetch as FetchLike);
-  const root = `${registry.skillsPath}/${skillId}`.replace(/\/+/g, '/');
+  let root = options.resolvedPath;
+  if (!root) {
+    if (skillPathOrId.includes('/')) {
+      root = skillPathOrId.startsWith(registry.skillsPath)
+        ? skillPathOrId
+        : `${registry.skillsPath}/${skillPathOrId}`;
+    } else {
+      root = `${registry.skillsPath}/${skillPathOrId}`;
+    }
+  }
+  root = root.replace(/\/+/g, '/');
   const files: SkillFile[] = [];
 
   async function walk(dirPath: string): Promise<void> {
-    const data = await githubJson(contentsUrl(registry, dirPath), fetchImpl);
-    if (!Array.isArray(data)) {
-      throw new Error(`Expected directory listing for ${dirPath}`);
-    }
-    for (const item of data as GhContentItem[]) {
+    const entries = await listDir(registry, dirPath, fetchImpl);
+    for (const item of entries) {
       if (item.type === 'dir') {
         await walk(item.path);
         continue;
       }
-      if (item.type !== 'file') continue;
       const content = await fetchFileContent(item, registry, fetchImpl);
-      const relativePath = item.path.slice(root.length).replace(/^\//, '');
+      const relativePath = item.path.slice(root!.length).replace(/^\//, '');
       if (!relativePath) continue;
       files.push({ relativePath, content });
     }
@@ -155,7 +255,7 @@ export async function fetchSkillBundle(
 
   if (!files.some((f) => f.relativePath === 'SKILL.md')) {
     throw new Error(
-      `Skill "${skillId}" in registry "${registry.id}" has no SKILL.md`
+      `Skill path "${root}" in registry "${registry.id}" has no SKILL.md`
     );
   }
 
@@ -163,18 +263,16 @@ export async function fetchSkillBundle(
 }
 
 async function fetchFileContent(
-  item: GhContentItem,
+  item: DirEntry,
   registry: SkillRegistry,
   fetchImpl: FetchLike
 ): Promise<string> {
-  const url =
-    item.download_url ||
-    `https://raw.githubusercontent.com/${registry.github}/${registry.ref}/${item.path}`;
+  const url = item.downloadUrl || rawFileUrl(registry, item.path);
   const res = await fetchImpl(url, {
     headers: {
       'User-Agent': 'prompt-exporter',
       Accept: 'application/octet-stream',
-      ...githubHeaders(),
+      ...apiHeaders(hostOf(registry)),
     },
   });
   if (!res.ok) {
@@ -183,4 +281,19 @@ async function fetchFileContent(
     );
   }
   return res.text();
+}
+
+/** Resolve a user skill id to a remote index entry (id or path suffix). */
+export function resolveSkillEntry(
+  remote: SkillIndexEntry[],
+  skillId: string
+): SkillIndexEntry | undefined {
+  const exact = remote.find((s) => s.id === skillId);
+  if (exact) return exact;
+  return remote.find(
+    (s) =>
+      s.path === skillId ||
+      s.path.endsWith(`/${skillId}`) ||
+      s.path === skillId.replace(/^\/*/, '')
+  );
 }

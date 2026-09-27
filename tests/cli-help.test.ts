@@ -91,5 +91,8 @@ describe('cli help (built dist)', () => {
     const listed = run(['skill-registry', 'list']);
     assert.equal(listed.status, 0);
     assert.match(listed.stdout, /awesome-cursor-skills/);
+    assert.match(listed.stdout, /vercel-agent-skills/);
+    assert.match(listed.stdout, /gitlab-ai-skills/);
+    assert.match(listed.stdout, /sbstjn-skills/);
   });
 });

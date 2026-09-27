@@ -1,18 +1,113 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { getConfigDir } from '../utils/paths.js';
-import type { SkillRegistry } from './types.js';
+import type { SkillHost, SkillRegistry } from './types.js';
 
 export const DEFAULT_SKILL_REGISTRY_ID = 'awesome-cursor-skills';
 
+/**
+ * Recommended public skill catalogs (GitHub / GitLab / Codeberg).
+ * Paths verified against each repo’s SKILL.md layout.
+ */
 const BUILTIN_REGISTRIES: SkillRegistry[] = [
   {
     id: 'awesome-cursor-skills',
     label: 'Awesome Cursor Skills',
     description:
-      'Curated Cursor skills (spencerpauly/awesome-cursor-skills → resources/)',
+      'Curated Cursor-native skills (spencerpauly/awesome-cursor-skills)',
+    host: 'github',
     github: 'spencerpauly/awesome-cursor-skills',
     skillsPath: 'resources',
+    ref: 'main',
+    builtin: true,
+  },
+  {
+    id: 'vercel-agent-skills',
+    label: 'Vercel Agent Skills',
+    description:
+      'Official Vercel agent skills (react, deploy, design guidelines) — skills.sh',
+    host: 'github',
+    github: 'vercel-labs/agent-skills',
+    skillsPath: 'skills',
+    ref: 'main',
+    builtin: true,
+  },
+  {
+    id: 'anthropic-skills',
+    label: 'Anthropic Skills',
+    description:
+      'Official Anthropic example skills (Agent Skills reference implementations)',
+    host: 'github',
+    github: 'anthropics/skills',
+    skillsPath: 'skills',
+    ref: 'main',
+    builtin: true,
+  },
+  {
+    id: 'mattpocock-skills',
+    label: 'Matt Pocock Skills',
+    description:
+      'Engineering/productivity skills (grill-me, tdd, implement, …) — nested layout',
+    host: 'github',
+    github: 'mattpocock/skills',
+    skillsPath: 'skills',
+    ref: 'main',
+    nested: true,
+    builtin: true,
+  },
+  {
+    id: 'posthog-skills',
+    label: 'PostHog Skills',
+    description:
+      'PostHog analytics, feature flags, and LLM analytics skills — nested layout',
+    host: 'github',
+    github: 'PostHog/skills',
+    skillsPath: 'skills',
+    ref: 'main',
+    nested: true,
+    builtin: true,
+  },
+  {
+    id: 'sentry-skills',
+    label: 'Sentry Skills',
+    description:
+      'Sentry code review, security, and debugging agent skills',
+    host: 'github',
+    github: 'getsentry/skills',
+    skillsPath: 'skills',
+    ref: 'main',
+    builtin: true,
+  },
+  {
+    id: 'obra-superpowers',
+    label: 'Obra Superpowers',
+    description:
+      'obra/superpowers — composable agent skill pack for coding workflows',
+    host: 'github',
+    github: 'obra/superpowers',
+    skillsPath: 'skills',
+    ref: 'main',
+    builtin: true,
+  },
+  {
+    id: 'gitlab-ai-skills',
+    label: 'GitLab AI Skills',
+    description:
+      'Official GitLab.org AI skills (MR review, pipelines, glab, …)',
+    host: 'gitlab',
+    github: 'gitlab-org/ai/skills',
+    skillsPath: 'skills',
+    ref: 'main',
+    builtin: true,
+  },
+  {
+    id: 'sbstjn-skills',
+    label: 'sbstjn Skills (Codeberg)',
+    description:
+      'Language/stack skills (TypeScript, Rust, React, …) on Codeberg',
+    host: 'codeberg',
+    github: 'sbstjn/skills',
+    skillsPath: 'skills',
     ref: 'main',
     builtin: true,
   },
@@ -30,6 +125,21 @@ export function listBuiltinRegistries(): SkillRegistry[] {
   return BUILTIN_REGISTRIES.map((r) => ({ ...r }));
 }
 
+function normalizeRegistry(r: SkillRegistry, builtin: boolean): SkillRegistry {
+  const host = (r.host || 'github') as SkillHost;
+  return {
+    id: r.id.trim(),
+    label: (r.label || r.id).trim(),
+    description: (r.description || '').trim(),
+    host,
+    github: r.github.trim(),
+    skillsPath: (r.skillsPath || 'skills').replace(/^\/+|\/+$/g, ''),
+    ref: (r.ref || 'main').trim() || 'main',
+    nested: r.nested === true,
+    builtin,
+  };
+}
+
 export async function loadUserRegistries(): Promise<SkillRegistry[]> {
   const filePath = getSkillsRegistriesPath();
   try {
@@ -38,15 +148,7 @@ export async function loadUserRegistries(): Promise<SkillRegistry[]> {
     if (!parsed || !Array.isArray(parsed.registries)) return [];
     return parsed.registries
       .filter((r) => r && typeof r.id === 'string' && typeof r.github === 'string')
-      .map((r) => ({
-        id: r.id.trim(),
-        label: (r.label || r.id).trim(),
-        description: (r.description || '').trim(),
-        github: r.github.trim(),
-        skillsPath: (r.skillsPath || 'skills').replace(/^\/+|\/+$/g, ''),
-        ref: (r.ref || 'main').trim() || 'main',
-        builtin: false,
-      }));
+      .map((r) => normalizeRegistry(r, false));
   } catch {
     return [];
   }
@@ -62,9 +164,11 @@ export async function saveUserRegistries(
       id: r.id,
       label: r.label,
       description: r.description,
+      host: r.host ?? 'github',
       github: r.github,
       skillsPath: r.skillsPath,
       ref: r.ref,
+      nested: r.nested === true ? true : undefined,
     })),
   };
   await fs.writeFile(filePath, JSON.stringify(payload, null, 2) + '\n', 'utf-8');
@@ -94,37 +198,85 @@ export function resolveRegistryId(raw?: string): string {
   return raw?.trim() || DEFAULT_SKILL_REGISTRY_ID;
 }
 
-/**
- * Parse owner/repo or https://github.com/owner/repo[/tree/ref/path...].
- * Returns github, optional ref and skillsPath from /tree/… when present.
- */
-export function parseGithubSource(input: string): {
+export type ParsedRepoSource = {
+  host: SkillHost;
   github: string;
   ref?: string;
   skillsPath?: string;
-} {
+};
+
+/**
+ * Parse owner/repo or https://{github|gitlab|codeberg}.com/… URLs.
+ */
+export function parseGithubSource(input: string): ParsedRepoSource {
+  return parseRepoSource(input);
+}
+
+export function parseRepoSource(input: string): ParsedRepoSource {
   const trimmed = input.trim().replace(/\.git$/, '');
-  const treeMatch = trimmed.match(
-    /^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/tree\/([^/]+)(?:\/(.*))?$/i
+
+  const gitlabTree = trimmed.match(
+    /^https?:\/\/gitlab\.com\/(.+?)\/-\/tree\/([^/]+)(?:\/(.*))?$/i
   );
-  if (treeMatch) {
+  if (gitlabTree) {
     return {
-      github: `${treeMatch[1]}/${treeMatch[2]}`,
-      ref: treeMatch[3],
-      skillsPath: treeMatch[4]?.replace(/\/+$/, '') || undefined,
+      host: 'gitlab',
+      github: gitlabTree[1]!,
+      ref: gitlabTree[2],
+      skillsPath: gitlabTree[3]?.replace(/\/+$/, '') || undefined,
     };
   }
-  const repoMatch = trimmed.match(
+  const gitlabRepo = trimmed.match(/^https?:\/\/gitlab\.com\/(.+?)\/?$/i);
+  if (gitlabRepo && !gitlabRepo[1]!.includes('/-/')) {
+    return { host: 'gitlab', github: gitlabRepo[1]!.replace(/\/+$/, '') };
+  }
+
+  const codebergTree = trimmed.match(
+    /^https?:\/\/codeberg\.org\/([^/]+)\/([^/]+)\/(?:src\/branch|tree)\/([^/]+)(?:\/(.*))?$/i
+  );
+  if (codebergTree) {
+    return {
+      host: 'codeberg',
+      github: `${codebergTree[1]}/${codebergTree[2]}`,
+      ref: codebergTree[3],
+      skillsPath: codebergTree[4]?.replace(/\/+$/, '') || undefined,
+    };
+  }
+  const codebergRepo = trimmed.match(
+    /^https?:\/\/codeberg\.org\/([^/]+)\/([^/]+)\/?$/i
+  );
+  if (codebergRepo) {
+    return {
+      host: 'codeberg',
+      github: `${codebergRepo[1]}/${codebergRepo[2]}`,
+    };
+  }
+
+  const ghTree = trimmed.match(
+    /^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/tree\/([^/]+)(?:\/(.*))?$/i
+  );
+  if (ghTree) {
+    return {
+      host: 'github',
+      github: `${ghTree[1]}/${ghTree[2]}`,
+      ref: ghTree[3],
+      skillsPath: ghTree[4]?.replace(/\/+$/, '') || undefined,
+    };
+  }
+  const ghRepo = trimmed.match(
     /^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/?$/i
   );
-  if (repoMatch) {
-    return { github: `${repoMatch[1]}/${repoMatch[2]}` };
+  if (ghRepo) {
+    return { host: 'github', github: `${ghRepo[1]}/${ghRepo[2]}` };
   }
-  if (/^[^/]+\/[^/]+$/.test(trimmed)) {
-    return { github: trimmed };
+
+  if (/^[^/]+\/[^/]+(?:\/[^/]+)*$/.test(trimmed) && !trimmed.includes('://')) {
+    // owner/repo or group/sub/project (GitLab) — host chosen by caller/default
+    return { host: 'github', github: trimmed };
   }
+
   throw new Error(
-    `Invalid GitHub source "${input}". Use owner/repo or a github.com URL.`
+    `Invalid repository source "${input}". Use owner/repo or a github.com / gitlab.com / codeberg.org URL.`
   );
 }
 
@@ -140,7 +292,7 @@ export async function addUserRegistry(
       `Skill registry id "${registry.id}" is reserved for a built-in registry`
     );
   }
-  const next: SkillRegistry = { ...registry, builtin: false };
+  const next = normalizeRegistry({ ...registry, builtin: false }, false);
   users.push(next);
   await saveUserRegistries(users);
   return next;

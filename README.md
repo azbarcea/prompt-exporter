@@ -33,7 +33,7 @@ CLI to **sync AI conversation prompts** from multiple sources to your machine as
 - **Offline archive & search** — Incremental sync gives you a greppable history you control, independent of the vendor UI.
 - **Project-scoped exports** — Pull one ChatGPT project (or the full account) into Markdown for a repo or knowledge base.
 - **Cursor workspace rules** — `rule-install` drops always-on rules so plans/journals live under `.cursor/` in the repo (not `~/.cursor`).
-- **Skills registries** — `skill-install` pulls curated `SKILL.md` packs (e.g. awesome-cursor-skills) into `.cursor/skills/`.
+- **Skills registries** — `skill-install` pulls curated `SKILL.md` packs from GitHub/GitLab/Codeberg catalogs into `.cursor/skills/`.
 
 ### Handoff sketch (export → compact → continue)
 
