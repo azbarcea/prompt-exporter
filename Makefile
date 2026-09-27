@@ -23,7 +23,7 @@ BRANCH  := $(shell git rev-parse --abbrev-ref HEAD)
 AUR_STABLE  := aur/prompt-exporter
 AUR_GIT     := aur/prompt-exporter-git
 
-.PHONY: help version bump check npm-pack npm-publish \
+.PHONY: help version bump check npm-auth npm-pack npm-publish \
 	github-tag github-release \
 	aur-sha aur-commit aur-publish \
 	release smoke
@@ -36,8 +36,9 @@ help:
 	@echo "  make bump VERSION=x.y.z   set package.json version + CHANGELOG stub; commit"
 	@echo "  make version              print current package.json version"
 	@echo "  make check                typecheck + tests; refuse dirty tree"
+	@echo "  make npm-auth             verify npmjs login (whoami)"
 	@echo "  make npm-pack             dry-run npm pack"
-	@echo "  make npm-publish          publish to npmjs.com (public)"
+	@echo "  make npm-publish          publish to npmjs.com (public; skips if version exists)"
 	@echo "  make github-tag           create/push annotated tag v<version>"
 	@echo "  make github-release       gh release from tag (CHANGELOG section)"
 	@echo "  make aur-sha              set PKGBUILD pkgver + sha256 from GitHub tarball"
@@ -45,6 +46,10 @@ help:
 	@echo "  make aur-publish          push PKGBUILDs to aur.archlinux.org"
 	@echo "  make release CONFIRM=1    check → npm → github → aur"
 	@echo "  make smoke                print install smoke commands"
+	@echo ""
+	@echo "Auth / resume:"
+	@echo "  npm login                 # or: export NPM_TOKEN=npm_… (automation token)"
+	@echo "  make release CONFIRM=1 SKIP_NPM=1   # resume after npm already published"
 	@echo ""
 	@echo "Example:"
 	@echo "  make bump VERSION=2.2.0"
@@ -114,14 +119,45 @@ check:
 	  echo "error: CHANGELOG.md missing '## $$CUR'" >&2; exit 1; \
 	}
 
+# Prefer NPM_TOKEN / NODE_AUTH_TOKEN when set (CI / automation tokens).
+# Do not print token values.
+define npm_with_token
+	if [[ -n "$${NPM_TOKEN:-}" ]]; then export NODE_AUTH_TOKEN="$$NPM_TOKEN"; fi; \
+	if [[ -z "$${NODE_AUTH_TOKEN:-}" ]] && [[ -n "$${NPM_CONFIG_TOKEN:-}" ]]; then \
+	  export NODE_AUTH_TOKEN="$$NPM_CONFIG_TOKEN"; \
+	fi
+endef
+
+npm-auth:
+	@$(npm_with_token); \
+	echo "==> npm whoami"; \
+	if ! WHO=$$(npm whoami 2>/dev/null); then \
+	  echo "error: npmjs auth failed (whoami → 401/unauthorized)" >&2; \
+	  echo "" >&2; \
+	  echo "  Your ~/.npmrc token is missing or expired. Fix one of:" >&2; \
+	  echo "    1) Interactive:  npm login" >&2; \
+	  echo "    2) Automation:   create a granular token (Publish) at" >&2; \
+	  echo "                     https://www.npmjs.com/settings/~/tokens" >&2; \
+	  echo "                     then:  export NPM_TOKEN=npm_…" >&2; \
+	  echo "    3) Or set //registry.npmjs.org/:_authToken=… in ~/.npmrc" >&2; \
+	  echo "" >&2; \
+	  echo "  Then: make npm-auth && make release CONFIRM=1" >&2; \
+	  exit 1; \
+	fi; \
+	echo "logged in as $$WHO"
+
 npm-pack: check
 	@echo "==> npm pack --dry-run"
-	@npm pack --dry-run
+	@$(npm_with_token); npm pack --dry-run
 
-npm-publish: check
+npm-publish: check npm-auth
 	@CUR=$$(node -p "require('./package.json').version"); \
-	echo "==> npm whoami"; \
-	npm whoami; \
+	$(npm_with_token); \
+	if npm view "prompt-exporter@$$CUR" version >/dev/null 2>&1; then \
+	  echo "==> prompt-exporter@$$CUR already on npmjs — skip publish"; \
+	  npm view prompt-exporter version; \
+	  exit 0; \
+	fi; \
 	echo "==> npm publish --access public ($$CUR)"; \
 	npm publish --access public; \
 	npm view prompt-exporter version
@@ -194,15 +230,21 @@ aur-publish:
 	@./aur/publish.sh prompt-exporter-git
 
 # Full ship: npm → GitHub → AUR (from GitHub tag tarball)
+# Resume after a failed mid-pipeline run: SKIP_NPM=1 (if npm already ok).
 release:
 	@if [[ "$(CONFIRM)" != "1" ]]; then \
 	  echo "Refusing to run full release without CONFIRM=1"; \
 	  echo "  make bump VERSION=x.y.z   # if needed"; \
 	  echo "  make release CONFIRM=1"; \
+	  echo "  make release CONFIRM=1 SKIP_NPM=1   # resume past npm"; \
 	  exit 1; \
 	fi
 	$(MAKE) check
-	$(MAKE) npm-publish
+	@if [[ "$(SKIP_NPM)" == "1" ]]; then \
+	  echo "==> SKIP_NPM=1 — skipping npm-publish"; \
+	else \
+	  $(MAKE) npm-publish; \
+	fi
 	$(MAKE) github-release
 	$(MAKE) aur-sha
 	$(MAKE) aur-commit

@@ -45,7 +45,9 @@ Ship with the Makefile (order: **npmjs → GitHub → AUR**):
 ```bash
 make help
 make bump VERSION=x.y.z   # optional; commits version + CHANGELOG stub
+make npm-auth             # npm login or export NPM_TOKEN=…
 make release CONFIRM=1
+# resume past npm if needed: make release CONFIRM=1 SKIP_NPM=1
 ```
 
 ## Develop
