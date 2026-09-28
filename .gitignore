@@ -12,3 +12,18 @@ aur/pkg/
 aur/*.pkg.tar*
 
 data
+
+# AI agents local directories
+.chatgpt/
+.claude/
+.cursor/
+.deepseek/
+.gemini/
+.google/
+.groq/
+.huggingface/
+.mistral/
+.neuron/
+.openai/
+.openrouter/
+.perplexity/
