@@ -516,7 +516,7 @@ export function createCli(): Command {
     )
     .option(
       '--descriptions',
-      'With --list, fetch SKILL.md descriptions (more API calls)',
+      'With --list, include descriptions from each local SKILL.md',
       false
     )
     .option('--all', 'Install every skill in the registry', false)

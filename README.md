@@ -22,7 +22,7 @@ CLI to **sync AI conversation prompts** from multiple sources to your machine as
 - 🎯 **Windows** — in focus (CDP + Chromium/Chrome paths)
 - 🎯 **macOS** — in focus (CDP + Chromium/Chrome paths)
 
-**User guide:** [docs/USER_GUIDE.md](./docs/USER_GUIDE.md)  
+**User manual:** [docs/user/](./docs/user/README.md)  
 **Developer guide:** [docs/DEVELOPER.md](./docs/DEVELOPER.md)
 
 ## What it's good for
