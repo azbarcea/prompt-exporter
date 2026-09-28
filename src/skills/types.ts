@@ -1,3 +1,14 @@
+/** Target AI coding agents / platforms a skill catalog is meant for. */
+export type SkillAgent =
+  | 'cursor'
+  | 'claude-code'
+  | 'codex'
+  | 'opencode'
+  | 'gitlab-duo'
+  | 'copilot'
+  | 'gemini-cli'
+  | 'any';
+
 /** Forge hosting a skills catalog. */
 export type SkillHost = 'github' | 'gitlab' | 'codeberg';
 
@@ -23,6 +34,11 @@ export type SkillRegistry = {
    * (e.g. skills/engineering/tdd → id tdd).
    */
   nested?: boolean;
+  /**
+   * Agents / AIs this catalog primarily targets.
+   * Include `any` when the Agent Skills format is broadly portable.
+   */
+  agents?: SkillAgent[];
   /** true for shipped defaults; false for user-added */
   builtin?: boolean;
 };
@@ -51,4 +67,12 @@ export type InstallSkillResult = {
   path: string;
   status: 'created' | 'updated' | 'skipped';
   filesWritten: number;
+  converted?: boolean;
+};
+
+export type RepoActivity = {
+  /** ISO timestamp of last push / activity when known */
+  pushedAt: string;
+  /** Cached relative label at fetch time (recomputed on display) */
+  source: 'api' | 'cache';
 };

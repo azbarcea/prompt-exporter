@@ -3,9 +3,15 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, describe, it } from 'node:test';
+import {
+  agentFromDestination,
+  convertSkillMarkdown,
+  registrySupportsAgent,
+} from '../src/skills/agents.js';
 import { listRemoteSkills, fetchSkillBundle } from '../src/skills/github.js';
 import type { FetchLike } from '../src/skills/github.js';
 import { installSkills } from '../src/skills/install.js';
+import { formatRelativeTime } from '../src/skills/relative-time.js';
 import {
   addUserRegistry,
   listBuiltinRegistries,
@@ -115,6 +121,7 @@ describe('listBuiltinRegistries', () => {
     const builtins = listBuiltinRegistries();
     const byId = Object.fromEntries(builtins.map((r) => [r.id, r]));
     assert.equal(byId['awesome-cursor-skills']?.skillsPath, 'resources');
+    assert.deepEqual(byId['awesome-cursor-skills']?.agents, ['cursor']);
     assert.equal(byId['vercel-agent-skills']?.github, 'vercel-labs/agent-skills');
     assert.equal(byId['anthropic-skills']?.github, 'anthropics/skills');
     assert.equal(byId['mattpocock-skills']?.nested, true);
@@ -122,7 +129,58 @@ describe('listBuiltinRegistries', () => {
     assert.equal(byId['sentry-skills']?.github, 'getsentry/skills');
     assert.equal(byId['obra-superpowers']?.github, 'obra/superpowers');
     assert.equal(byId['gitlab-ai-skills']?.host, 'gitlab');
+    assert.deepEqual(byId['gitlab-ai-skills']?.agents, [
+      'gitlab-duo',
+      'claude-code',
+      'opencode',
+    ]);
     assert.equal(byId['sbstjn-skills']?.host, 'codeberg');
+  });
+});
+
+describe('agents + relative time', () => {
+  it('infers destination agent and support', () => {
+    assert.equal(agentFromDestination('.cursor'), 'cursor');
+    assert.equal(agentFromDestination('.claude'), 'claude-code');
+    assert.equal(
+      registrySupportsAgent(
+        { ...registry, agents: ['gitlab-duo'] },
+        'cursor'
+      ),
+      false
+    );
+    assert.equal(
+      registrySupportsAgent({ ...registry, agents: ['any'] }, 'cursor'),
+      true
+    );
+  });
+
+  it('formats relative durations', () => {
+    const now = new Date('2026-09-27T12:00:00Z');
+    assert.equal(
+      formatRelativeTime(new Date('2026-09-24T12:00:00Z'), now),
+      '3 days ago'
+    );
+    assert.equal(
+      formatRelativeTime(new Date('2026-07-27T12:00:00Z'), now),
+      '2 months ago'
+    );
+  });
+
+  it('converts SKILL.md for cursor paths', () => {
+    const out = convertSkillMarkdown(
+      `---
+name: demo
+description: Demo
+compatibility: claude-code
+---
+
+Install under ~/.claude/skills/demo
+`,
+      { agent: 'cursor', skillId: 'demo' }
+    );
+    assert.match(out, /compatibility: claude-code, cursor/);
+    assert.match(out, /\.cursor\/skills\/demo/);
   });
 });
 
@@ -206,9 +264,44 @@ description: Write conventional commits
         remoteIndex: listed,
       });
       assert.equal(again.results[0]?.status, 'skipped');
+
+      const converted = await installSkills({
+        registry,
+        skillIds: ['writing-commit-messages'],
+        destination: '.cursor',
+        cwd: tmp,
+        force: true,
+        fetchImpl,
+        remoteIndex: listed,
+        convertForAgent: 'cursor',
+      });
+      assert.equal(converted.results[0]?.converted, true);
+      const rewritten = await fs.readFile(
+        path.join(tmp, '.cursor/skills/writing-commit-messages/SKILL.md'),
+        'utf-8'
+      );
+      assert.match(rewritten, /compatibility:.*cursor/);
     } finally {
       await fs.rm(tmp, { recursive: true, force: true });
     }
+  });
+
+  it('surfaces github rate limit with token hint', async () => {
+    const fetchImpl: FetchLike = async () => ({
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden',
+      async text() {
+        return '{"message":"API rate limit exceeded"}';
+      },
+      async json() {
+        return { message: 'API rate limit exceeded' };
+      },
+    });
+    await assert.rejects(
+      () => listRemoteSkills(registry, { fetchImpl }),
+      /rate limit.*GITHUB_TOKEN/i
+    );
   });
 
   it('discovers nested category/skill layouts', async () => {

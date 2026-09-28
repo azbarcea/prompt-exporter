@@ -27,7 +27,11 @@ function hostOf(registry: SkillRegistry): SkillHost {
   return registry.host ?? 'github';
 }
 
-function apiHeaders(host: SkillHost): Record<string, string> {
+export function hostOfRegistry(registry: SkillRegistry): SkillHost {
+  return hostOf(registry);
+}
+
+export function apiHeadersForHost(host: SkillHost): Record<string, string> {
   const headers: Record<string, string> = {
     'User-Agent': 'prompt-exporter',
     Accept: 'application/json',
@@ -48,6 +52,17 @@ function apiHeaders(host: SkillHost): Record<string, string> {
   return headers;
 }
 
+function apiHeaders(host: SkillHost): Record<string, string> {
+  return apiHeadersForHost(host);
+}
+
+function isRateLimit(status: number, body: string): boolean {
+  if (status === 403 || status === 429) {
+    return /rate limit/i.test(body) || status === 429;
+  }
+  return false;
+}
+
 async function apiJson(
   url: string,
   host: SkillHost,
@@ -56,6 +71,17 @@ async function apiJson(
   const res = await fetchImpl(url, { headers: apiHeaders(host) });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
+    if (isRateLimit(res.status, body)) {
+      const tokenHint =
+        host === 'github'
+          ? 'Set PROMPT_EXPORTER_GITHUB_TOKEN or GITHUB_TOKEN for a higher rate limit.'
+          : host === 'gitlab'
+            ? 'Set PROMPT_EXPORTER_GITLAB_TOKEN or GITLAB_TOKEN.'
+            : 'Retry later or authenticate with the forge API.';
+      throw new Error(
+        `${host} API rate limit exceeded while calling ${url}. ${tokenHint}`
+      );
+    }
     throw new Error(
       `${host} API ${res.status} ${res.statusText} for ${url}` +
         (body ? `: ${body.slice(0, 200)}` : '')

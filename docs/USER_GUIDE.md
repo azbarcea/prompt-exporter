@@ -167,29 +167,31 @@ Creates `.cursor/rules/*.mdc` plus empty `.cursor/plans/` and `.cursor/journal/`
 
 ### Skills registries
 
-Install Cursor agent skills (`SKILL.md` folders) from public catalogs into `.cursor/skills/`:
+Install agent skills (`SKILL.md` folders) from public catalogs into `.cursor/skills/` (or another destination):
 
 ```bash
-prompt-exporter skill-registry list
+prompt-exporter skill-registry list   # shows target agents + last update (e.g. "2 months ago")
 prompt-exporter skill-install --list
 prompt-exporter skill-install writing-commit-messages creating-pr
 
 # Other built-in registries
 prompt-exporter skill-install --registry vercel-agent-skills --list
 prompt-exporter skill-install --registry mattpocock-skills tdd grill-me
-prompt-exporter skill-install --registry gitlab-ai-skills mr-review
+prompt-exporter skill-install --registry gitlab-ai-skills mr-review --convert
 prompt-exporter skill-install --registry sbstjn-skills typescript
 
 # Add another catalog (GitHub / GitLab / Codeberg)
 prompt-exporter skill-registry add team \
-  https://github.com/org/skills/tree/main/skills
+  https://github.com/org/skills/tree/main/skills --agents cursor,any
 prompt-exporter skill-registry add gl \
-  https://gitlab.com/gitlab-org/ai/skills/-/tree/main/skills
+  https://gitlab.com/gitlab-org/ai/skills/-/tree/main/skills --agents gitlab-duo
 ```
+
+When a registry’s target agents don’t match the destination (default: Cursor via `.cursor`), `skill-install` asks whether to convert `SKILL.md`, or you can pass `--convert` / `--as-is` (non-interactive).
 
 Built-in registries: `awesome-cursor-skills`, `vercel-agent-skills`, `anthropic-skills`, `mattpocock-skills` (nested), `posthog-skills` (nested), `sentry-skills`, `obra-superpowers`, `gitlab-ai-skills`, `sbstjn-skills` (Codeberg).
 
-Optional tokens: `PROMPT_EXPORTER_GITHUB_TOKEN` / `GITHUB_TOKEN`, `PROMPT_EXPORTER_GITLAB_TOKEN` / `GITLAB_TOKEN`.
+Optional tokens (avoids GitHub/GitLab API rate limits): `PROMPT_EXPORTER_GITHUB_TOKEN` / `GITHUB_TOKEN`, `PROMPT_EXPORTER_GITLAB_TOKEN` / `GITLAB_TOKEN`.
 
 ## Privacy
 

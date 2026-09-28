@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { getConfigDir } from '../utils/paths.js';
-import type { SkillHost, SkillRegistry } from './types.js';
+import type { SkillAgent, SkillHost, SkillRegistry } from './types.js';
 
 export const DEFAULT_SKILL_REGISTRY_ID = 'awesome-cursor-skills';
 
@@ -19,6 +19,7 @@ const BUILTIN_REGISTRIES: SkillRegistry[] = [
     github: 'spencerpauly/awesome-cursor-skills',
     skillsPath: 'resources',
     ref: 'main',
+    agents: ['cursor'],
     builtin: true,
   },
   {
@@ -30,6 +31,7 @@ const BUILTIN_REGISTRIES: SkillRegistry[] = [
     github: 'vercel-labs/agent-skills',
     skillsPath: 'skills',
     ref: 'main',
+    agents: ['any', 'cursor', 'claude-code', 'codex'],
     builtin: true,
   },
   {
@@ -41,6 +43,7 @@ const BUILTIN_REGISTRIES: SkillRegistry[] = [
     github: 'anthropics/skills',
     skillsPath: 'skills',
     ref: 'main',
+    agents: ['claude-code', 'any'],
     builtin: true,
   },
   {
@@ -53,6 +56,7 @@ const BUILTIN_REGISTRIES: SkillRegistry[] = [
     skillsPath: 'skills',
     ref: 'main',
     nested: true,
+    agents: ['claude-code', 'codex', 'cursor', 'any'],
     builtin: true,
   },
   {
@@ -65,6 +69,7 @@ const BUILTIN_REGISTRIES: SkillRegistry[] = [
     skillsPath: 'skills',
     ref: 'main',
     nested: true,
+    agents: ['any', 'cursor', 'claude-code'],
     builtin: true,
   },
   {
@@ -76,6 +81,7 @@ const BUILTIN_REGISTRIES: SkillRegistry[] = [
     github: 'getsentry/skills',
     skillsPath: 'skills',
     ref: 'main',
+    agents: ['any', 'cursor', 'claude-code'],
     builtin: true,
   },
   {
@@ -87,6 +93,7 @@ const BUILTIN_REGISTRIES: SkillRegistry[] = [
     github: 'obra/superpowers',
     skillsPath: 'skills',
     ref: 'main',
+    agents: ['claude-code', 'cursor', 'any'],
     builtin: true,
   },
   {
@@ -98,6 +105,7 @@ const BUILTIN_REGISTRIES: SkillRegistry[] = [
     github: 'gitlab-org/ai/skills',
     skillsPath: 'skills',
     ref: 'main',
+    agents: ['gitlab-duo', 'claude-code', 'opencode'],
     builtin: true,
   },
   {
@@ -109,6 +117,7 @@ const BUILTIN_REGISTRIES: SkillRegistry[] = [
     github: 'sbstjn/skills',
     skillsPath: 'skills',
     ref: 'main',
+    agents: ['cursor', 'any'],
     builtin: true,
   },
 ];
@@ -127,6 +136,9 @@ export function listBuiltinRegistries(): SkillRegistry[] {
 
 function normalizeRegistry(r: SkillRegistry, builtin: boolean): SkillRegistry {
   const host = (r.host || 'github') as SkillHost;
+  const agents = Array.isArray(r.agents)
+    ? ([...new Set(r.agents.filter(Boolean))] as SkillAgent[])
+    : undefined;
   return {
     id: r.id.trim(),
     label: (r.label || r.id).trim(),
@@ -136,6 +148,7 @@ function normalizeRegistry(r: SkillRegistry, builtin: boolean): SkillRegistry {
     skillsPath: (r.skillsPath || 'skills').replace(/^\/+|\/+$/g, ''),
     ref: (r.ref || 'main').trim() || 'main',
     nested: r.nested === true,
+    agents: agents?.length ? agents : undefined,
     builtin,
   };
 }
@@ -169,6 +182,7 @@ export async function saveUserRegistries(
       skillsPath: r.skillsPath,
       ref: r.ref,
       nested: r.nested === true ? true : undefined,
+      agents: r.agents?.length ? r.agents : undefined,
     })),
   };
   await fs.writeFile(filePath, JSON.stringify(payload, null, 2) + '\n', 'utf-8');

@@ -491,6 +491,20 @@ export function createCli(): Command {
     )
     .option('--force', 'Overwrite existing skill directories', false)
     .option(
+      '--convert',
+      'Adapt SKILL.md for the destination agent when registry targets differ',
+      false
+    )
+    .option(
+      '--as-is',
+      'Install without converting even when registry agents differ from destination',
+      false
+    )
+    .option(
+      '--agent <name>',
+      'Destination agent (cursor|claude-code|codex|…); default inferred from --destination'
+    )
+    .option(
       '--list',
       'List skills in --registry (default: awesome-cursor-skills)',
       false
@@ -511,9 +525,9 @@ export function createCli(): Command {
         '',
         'Examples:',
         '  prompt-exporter skill-install --list',
-        '  prompt-exporter skill-install --registry awesome-cursor-skills --list',
         '  prompt-exporter skill-install writing-commit-messages creating-pr',
-        '  prompt-exporter skill-install --registry awesome-cursor-skills writing-commit-messages --force',
+        '  prompt-exporter skill-install --registry gitlab-ai-skills mr-review --convert',
+        '  prompt-exporter skill-install --registry anthropic-skills pdf --convert --force',
         '',
         'Manage registries: prompt-exporter skill-registry --help',
       ].join('\n')
@@ -527,6 +541,9 @@ export function createCli(): Command {
         all: options.all,
         descriptions: options.descriptions,
         json: options.json,
+        convert: options.convert,
+        noConvert: options.asIs,
+        agent: options.agent,
         skills,
       });
     });
@@ -567,6 +584,10 @@ export function createCli(): Command {
       'Discover skills one level deeper (category/skill layouts)',
       false
     )
+    .option(
+      '--agents <list>',
+      'Comma-separated target agents (cursor,claude-code,codex,gitlab-duo,any,…)'
+    )
     .option('--label <label>', 'Display name')
     .option('--description <text>', 'Short description')
     .addHelpText(
@@ -574,10 +595,9 @@ export function createCli(): Command {
       [
         '',
         'Examples:',
-        '  prompt-exporter skill-registry add acs spencerpauly/awesome-cursor-skills --path resources',
-        '  prompt-exporter skill-registry add acs https://github.com/spencerpauly/awesome-cursor-skills/tree/main/resources',
-        '  prompt-exporter skill-registry add gl https://gitlab.com/gitlab-org/ai/skills/-/tree/main/skills --host gitlab',
-        '  prompt-exporter skill-registry add mp mattpocock/skills --nested',
+        '  prompt-exporter skill-registry add acs spencerpauly/awesome-cursor-skills --path resources --agents cursor',
+        '  prompt-exporter skill-registry add gl https://gitlab.com/gitlab-org/ai/skills/-/tree/main/skills --host gitlab --agents gitlab-duo,claude-code',
+        '  prompt-exporter skill-registry add mp mattpocock/skills --nested --agents cursor,claude-code,any',
       ].join('\n')
     )
     .action(async (id: string, source: string, options) => {
@@ -588,6 +608,7 @@ export function createCli(): Command {
         ref: options.ref,
         host: options.host,
         nested: options.nested,
+        agents: options.agents,
         label: options.label,
         description: options.description,
       });

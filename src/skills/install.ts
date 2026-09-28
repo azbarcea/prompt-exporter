@@ -1,5 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { convertSkillMarkdown } from './agents.js';
+import type { SkillAgent } from './types.js';
 import {
   fetchSkillBundle,
   listRemoteSkills,
@@ -23,6 +25,8 @@ export type InstallSkillsOptions = {
   fetchImpl?: FetchLike;
   /** Optional pre-fetched remote index (avoids a second list call) */
   remoteIndex?: SkillIndexEntry[];
+  /** Adapt SKILL.md for this agent when writing */
+  convertForAgent?: SkillAgent;
 };
 
 function normalizeDestination(destination: string, cwd: string): string {
@@ -81,10 +85,25 @@ export async function installSkills(
       continue;
     }
 
-    const files = await fetchSkillBundle(options.registry, entry.id, {
+    let files = await fetchSkillBundle(options.registry, entry.id, {
       fetchImpl: options.fetchImpl,
       resolvedPath: entry.path,
     });
+    let converted = false;
+    if (options.convertForAgent) {
+      files = files.map((f) => {
+        if (f.relativePath !== 'SKILL.md') return f;
+        converted = true;
+        return {
+          ...f,
+          content: convertSkillMarkdown(f.content, {
+            agent: options.convertForAgent!,
+            skillId: entry.id.split('/').pop() || entry.id,
+          }),
+        };
+      });
+    }
+
     const bundle: SkillBundle = {
       id: entry.id,
       registryId: options.registry.id,
@@ -107,6 +126,7 @@ export async function installSkills(
       path: skillDir,
       status: exists ? 'updated' : 'created',
       filesWritten: bundle.files.length,
+      converted: converted || undefined,
     });
   }
 
