@@ -4,6 +4,11 @@ import type {
   SkillHost,
   SkillRegistry,
 } from './types.js';
+import { ensureRegistryClone } from './clone.js';
+import {
+  fetchSkillBundleFromClone,
+  listSkillsFromClone,
+} from './local.js';
 
 export type FetchLike = (
   input: string,
@@ -169,13 +174,30 @@ function assignUniqueIds(entries: SkillIndexEntry[]): SkillIndexEntry[] {
 
 /**
  * List skill folders under the registry skillsPath.
- * With nested=true, also finds skills/category/skill layouts.
+ * Default: shallow-clone the repo over HTTPS and scan the local tree
+ * (avoids forge Contents API rate limits; works offline after sync).
+ * Pass `fetchImpl` to use the legacy Contents API (tests / offline API mocks).
  */
 export async function listRemoteSkills(
   registry: SkillRegistry,
-  options: { fetchImpl?: FetchLike; withDescriptions?: boolean } = {}
+  options: {
+    fetchImpl?: FetchLike;
+    withDescriptions?: boolean;
+    refresh?: boolean;
+    /** Use an existing checkout instead of cloning (tests). */
+    localRoot?: string;
+  } = {}
 ): Promise<SkillIndexEntry[]> {
-  const fetchImpl = options.fetchImpl ?? (globalThis.fetch as FetchLike);
+  if (!options.fetchImpl) {
+    const root =
+      options.localRoot ??
+      (await ensureRegistryClone(registry, { refresh: options.refresh })).root;
+    return listSkillsFromClone(root, registry, {
+      withDescriptions: options.withDescriptions,
+    });
+  }
+
+  const fetchImpl = options.fetchImpl;
   const top = await listDir(registry, registry.skillsPath, fetchImpl);
   const dirs = top.filter((i) => i.type === 'dir' && !i.name.startsWith('.'));
   const found: SkillIndexEntry[] = [];
@@ -242,14 +264,18 @@ async function fetchSkillDescription(
 
 /**
  * Download all files under a skill folder (SKILL.md + companions).
- * `skillPath` is repo-relative (from SkillIndexEntry.path).
+ * Default: read from the local HTTPS clone. Pass `fetchImpl` for API/raw download.
  */
 export async function fetchSkillBundle(
   registry: SkillRegistry,
   skillPathOrId: string,
-  options: { fetchImpl?: FetchLike; resolvedPath?: string } = {}
+  options: {
+    fetchImpl?: FetchLike;
+    resolvedPath?: string;
+    refresh?: boolean;
+    localRoot?: string;
+  } = {}
 ): Promise<SkillFile[]> {
-  const fetchImpl = options.fetchImpl ?? (globalThis.fetch as FetchLike);
   let root = options.resolvedPath;
   if (!root) {
     if (skillPathOrId.includes('/')) {
@@ -261,6 +287,15 @@ export async function fetchSkillBundle(
     }
   }
   root = root.replace(/\/+/g, '/');
+
+  if (!options.fetchImpl) {
+    const cloneRoot =
+      options.localRoot ??
+      (await ensureRegistryClone(registry, { refresh: options.refresh })).root;
+    return fetchSkillBundleFromClone(cloneRoot, root);
+  }
+
+  const fetchImpl = options.fetchImpl;
   const files: SkillFile[] = [];
 
   async function walk(dirPath: string): Promise<void> {

@@ -50,6 +50,7 @@ export type SkillInstallCommandOptions = {
   json?: boolean;
   convert?: boolean;
   noConvert?: boolean;
+  refresh?: boolean;
   agent?: string;
   skills?: string[];
 };
@@ -61,11 +62,13 @@ export async function skillInstallCommand(
   const registry = await getRegistry(registryId);
   const host = registry.host ?? 'github';
   const agents = registryAgents(registry);
+  const refresh = options.refresh === true;
 
   if (options.list) {
     try {
       const skills = await listRemoteSkills(registry, {
         withDescriptions: options.descriptions === true,
+        refresh,
       });
       if (options.json) {
         console.log(
@@ -112,13 +115,6 @@ export async function skillInstallCommand(
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       console.error(chalk.red(msg));
-      if (/rate limit/i.test(msg)) {
-        console.error(
-          chalk.yellow(
-            'Tip: export PROMPT_EXPORTER_GITHUB_TOKEN or GITHUB_TOKEN, then retry.'
-          )
-        );
-      }
       process.exitCode = 1;
       return;
     }
@@ -127,17 +123,10 @@ export async function skillInstallCommand(
   let skillIds = parseCommaIds(options.skills ?? []);
   let remote;
   try {
-    remote = await listRemoteSkills(registry);
+    remote = await listRemoteSkills(registry, { refresh });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error(chalk.red(msg));
-    if (/rate limit/i.test(msg)) {
-      console.error(
-        chalk.yellow(
-          'Tip: export PROMPT_EXPORTER_GITHUB_TOKEN or GITHUB_TOKEN, then retry.'
-        )
-      );
-    }
     process.exitCode = 1;
     return;
   }
@@ -192,6 +181,7 @@ export async function skillInstallCommand(
     skillIds,
     destination,
     force: options.force === true,
+    refresh,
     remoteIndex: remote,
     convertForAgent,
   });

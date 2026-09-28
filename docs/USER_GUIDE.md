@@ -167,11 +167,14 @@ Creates `.cursor/rules/*.mdc` plus empty `.cursor/plans/` and `.cursor/journal/`
 
 ### Skills registries
 
-Install agent skills (`SKILL.md` folders) from public catalogs into `.cursor/skills/` (or another destination):
+Install agent skills (`SKILL.md` folders) from public catalogs into `.cursor/skills/` (or another destination).
+
+Registries are **shallow-cloned over HTTPS** into `~/.prompt-exporter/skills/repos/` and scanned on disk (no forge Contents API — avoids rate limits; works offline after the first sync). Use `--refresh` to pull updates (otherwise clones refresh at most every 6 hours).
 
 ```bash
-prompt-exporter skill-registry list   # shows target agents + last update (e.g. "2 months ago")
+prompt-exporter skill-registry list   # target agents + last update (from local clone when present)
 prompt-exporter skill-install --list
+prompt-exporter skill-install --list --refresh
 prompt-exporter skill-install writing-commit-messages creating-pr
 
 # Other built-in registries
@@ -191,7 +194,7 @@ When a registry’s target agents don’t match the destination (default: Cursor
 
 Built-in registries: `awesome-cursor-skills`, `vercel-agent-skills`, `anthropic-skills`, `mattpocock-skills` (nested), `posthog-skills` (nested), `sentry-skills`, `obra-superpowers`, `gitlab-ai-skills`, `sbstjn-skills` (Codeberg).
 
-Optional tokens (avoids GitHub/GitLab API rate limits): `PROMPT_EXPORTER_GITHUB_TOKEN` / `GITHUB_TOKEN`, `PROMPT_EXPORTER_GITLAB_TOKEN` / `GITLAB_TOKEN`.
+Requires `git` on `PATH`. Optional forge tokens are only needed if you still hit authenticated API paths elsewhere: `PROMPT_EXPORTER_GITHUB_TOKEN` / `GITHUB_TOKEN`, `PROMPT_EXPORTER_GITLAB_TOKEN` / `GITLAB_TOKEN`.
 
 ## Privacy
 

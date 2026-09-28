@@ -73,6 +73,6 @@ export type InstallSkillResult = {
 export type RepoActivity = {
   /** ISO timestamp of last push / activity when known */
   pushedAt: string;
-  /** Cached relative label at fetch time (recomputed on display) */
-  source: 'api' | 'cache';
+  /** Where the timestamp came from */
+  source: 'git' | 'api' | 'cache';
 };

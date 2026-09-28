@@ -7,6 +7,7 @@
 - **`rule-install`** — install Cursor workspace rules (`plans-location`, `journal-logging`) under `.cursor/rules/` so plans/journals stay in-repo instead of `~/.cursor`
 - **Skills registries** — `skill-registry` / `skill-install` pull Cursor `SKILL.md` trees from GitHub/GitLab/Codeberg catalogs (built-ins include awesome-cursor-skills, Vercel, Anthropic, Matt Pocock, PostHog, Sentry, Obra Superpowers, GitLab AI skills, sbstjn) into `.cursor/skills/`
 - **Skills registry metadata** — list shows target agents/AIs and relative last-commit age; clearer GitHub rate-limit errors (token tip); `skill-install --convert` / `--as-is` (or interactive ask) when registry agents don’t match the destination
+- **Skills via git clone** — registries are shallow-cloned over HTTPS under `~/.prompt-exporter/skills/repos/` and listed/installed from disk (avoids Contents API rate limits; `--refresh` to pull)
 
 ## 2.1.0
 

@@ -491,6 +491,11 @@ export function createCli(): Command {
     )
     .option('--force', 'Overwrite existing skill directories', false)
     .option(
+      '--refresh',
+      'Re-fetch the local registry git clone before listing/installing',
+      false
+    )
+    .option(
       '--convert',
       'Adapt SKILL.md for the destination agent when registry targets differ',
       false
@@ -525,9 +530,13 @@ export function createCli(): Command {
         '',
         'Examples:',
         '  prompt-exporter skill-install --list',
+        '  prompt-exporter skill-install --list --refresh',
         '  prompt-exporter skill-install writing-commit-messages creating-pr',
         '  prompt-exporter skill-install --registry gitlab-ai-skills mr-review --convert',
         '  prompt-exporter skill-install --registry anthropic-skills pdf --convert --force',
+        '',
+        'Registries are shallow-cloned under ~/.prompt-exporter/skills/repos/',
+        'and scanned offline (use --refresh to pull updates).',
         '',
         'Manage registries: prompt-exporter skill-registry --help',
       ].join('\n')
@@ -543,6 +552,7 @@ export function createCli(): Command {
         json: options.json,
         convert: options.convert,
         noConvert: options.asIs,
+        refresh: options.refresh,
         agent: options.agent,
         skills,
       });

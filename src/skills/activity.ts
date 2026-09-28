@@ -84,13 +84,22 @@ async function fetchPushedAt(
 }
 
 /**
- * Last repo activity (push / last_activity), with on-disk cache.
- * Returns null when unavailable (rate limit, network, private).
+ * Last repo activity: prefer local clone HEAD date, else forge API + disk cache.
  */
 export async function getRepoActivity(
   registry: SkillRegistry,
   options: { fetchImpl?: FetchLike; forceRefresh?: boolean } = {}
 ): Promise<RepoActivity | null> {
+  if (!options.fetchImpl) {
+    try {
+      const { cloneHeadCommittedAt } = await import('./clone.js');
+      const fromGit = await cloneHeadCommittedAt(registry);
+      if (fromGit) return { pushedAt: fromGit, source: 'git' };
+    } catch {
+      // fall through to API
+    }
+  }
+
   const fetchImpl = options.fetchImpl ?? (globalThis.fetch as FetchLike);
   const key = cacheKey(registry);
   const cache = await readCache();

@@ -23,6 +23,8 @@ export type InstallSkillsOptions = {
   force?: boolean;
   cwd?: string;
   fetchImpl?: FetchLike;
+  /** Force re-fetch of the local registry clone */
+  refresh?: boolean;
   /** Optional pre-fetched remote index (avoids a second list call) */
   remoteIndex?: SkillIndexEntry[];
   /** Adapt SKILL.md for this agent when writing */
@@ -53,6 +55,7 @@ export async function installSkills(
     options.remoteIndex ??
     (await listRemoteSkills(options.registry, {
       fetchImpl: options.fetchImpl,
+      refresh: options.refresh,
     }));
 
   const results: InstallSkillResult[] = [];
@@ -88,6 +91,7 @@ export async function installSkills(
     let files = await fetchSkillBundle(options.registry, entry.id, {
       fetchImpl: options.fetchImpl,
       resolvedPath: entry.path,
+      refresh: options.refresh,
     });
     let converted = false;
     if (options.convertForAgent) {
