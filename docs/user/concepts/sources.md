@@ -16,10 +16,11 @@ prompt-exporter sources --json
 | `chatgpt` | ChatGPT | Chromium CDP (optional Bearer fallback) | Default source; supports projects |
 | `lumo` | Proton Lumo | Chromium CDP → in-app Redux | Server payloads are encrypted; sync reads decrypted client state |
 | `perplexity` | Perplexity | Chromium CDP cookies → internal REST | No official public history API |
+| `copilot` | Microsoft 365 Copilot Chat | Chromium CDP → Substrate (`GetChats` / `GetConversation`) | Personal export via logged-in SPA; not Graph enterprise API |
 
 ## Planned sources
 
-`claude`, `gemini`, `deepseek`, `copilot` (Microsoft 365), `grok`, `kimi`.
+`claude`, `gemini`, `deepseek`, `grok`, `kimi`.
 
 ## Per-source data directory
 
@@ -36,3 +37,4 @@ Override with `-o` / `--output` or `PROMPT_EXPORTER_DATA` (parent of all source 
 - [ChatGPT](../guides/chatgpt.md)
 - [Lumo](../guides/lumo.md)
 - [Perplexity](../guides/perplexity.md)
+- [Microsoft 365 Copilot](../guides/copilot.md)

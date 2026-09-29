@@ -17,8 +17,9 @@
 | `chatgpt` | [chatgpt.com](https://chatgpt.com/) | Chromium CDP (logged-in session) |
 | `lumo` | [lumo.proton.me](https://lumo.proton.me/) | Chromium CDP; reads decrypted in-app Redux state |
 | `perplexity` | [perplexity.ai](https://www.perplexity.ai/) | Internal REST via logged-in CDP cookies |
+| `copilot` | [m365.cloud.microsoft/chat](https://m365.cloud.microsoft/chat) | Substrate API via logged-in CDP (MSAL) |
 
-Planned: `claude`, `gemini`, `deepseek`, `copilot` (Microsoft 365), `grok`, `kimi`.
+Planned: `claude`, `gemini`, `deepseek`, `grok`, `kimi`.
 
 ## Design principles
 

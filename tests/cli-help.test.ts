@@ -59,6 +59,7 @@ describe('cli help (built dist)', () => {
     assert.match(sources.stdout, /chatgpt/);
     assert.match(sources.stdout, /lumo/);
     assert.match(sources.stdout, /perplexity/);
+    assert.match(sources.stdout, /copilot/);
   });
 
   it('documents rule-install', () => {

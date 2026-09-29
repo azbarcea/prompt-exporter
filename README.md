@@ -9,10 +9,10 @@ CLI to **sync AI conversation prompts** from multiple sources to your machine as
 - ✅ `chatgpt` — [chatgpt.com](https://chatgpt.com/) history via Chromium CDP
 - ✅ `lumo` — [lumo.proton.me](https://lumo.proton.me/) (Proton) via Chromium CDP / in-app Redux
 - ✅ `perplexity` — [perplexity.ai](https://www.perplexity.ai/) threads via internal REST API (CDP session)
+- ✅ `copilot` — Microsoft 365 Copilot Chat ([m365.cloud.microsoft/chat](https://m365.cloud.microsoft/chat)) via Substrate API + CDP
 - 🎯 `claude` — [claude.ai](https://claude.ai/) (planned)
 - 🎯 `gemini` — [gemini.google.com](https://gemini.google.com/) (planned)
 - 🎯 `deepseek` — [chat.deepseek.com](https://chat.deepseek.com/) (planned)
-- 🎯 `copilot` — Microsoft 365 Copilot ([m365.cloud.microsoft](https://m365.cloud.microsoft/chat/) / [copilot.microsoft.com](https://copilot.microsoft.com/)) (planned)
 - 🎯 `grok` — [grok.com](https://grok.com/) / xAI (planned)
 - 🎯 `kimi` — [kimi.com](https://www.kimi.com/) / Moonshot (planned)
 
@@ -147,6 +147,8 @@ prompt-exporter chromium start
 prompt-exporter sync --source chatgpt
 prompt-exporter chromium start --url https://www.perplexity.ai/
 prompt-exporter sync --source perplexity
+prompt-exporter chromium start --url https://m365.cloud.microsoft/chat
+prompt-exporter sync --source copilot
 prompt-exporter rule-install --source cursor
 prompt-exporter skill-install --list
 prompt-exporter sources

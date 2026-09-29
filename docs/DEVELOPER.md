@@ -19,6 +19,7 @@ src/
     chatgpt/               # chatgpt source (api/, index.ts)
     lumo/                  # lumo.proton.me (CDP Redux export)
     perplexity/            # perplexity.ai (REST via CDP cookies)
+    copilot/               # M365 Copilot Chat (Substrate via CDP / MSAL)
   services/                # storage, markdown, backup (source-agnostic)
   rules/                   # rule-install catalogs + Cursor .mdc templates
   skills/                  # skill registries + git clone install into .cursor/skills

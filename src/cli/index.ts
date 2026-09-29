@@ -2,6 +2,10 @@ import { Command } from 'commander';
 import { backupCommand } from './commands/backup.js';
 import { lumoBackupCommand, lumoListCommand } from './commands/backup-lumo.js';
 import {
+  copilotBackupCommand,
+  copilotListCommand,
+} from './commands/backup-copilot.js';
+import {
   perplexityBackupCommand,
   perplexityListCommand,
 } from './commands/backup-perplexity.js';
@@ -67,6 +71,8 @@ export function createCli(): Command {
         '  prompt-exporter sync --source lumo',
         '  prompt-exporter chromium start --url https://www.perplexity.ai/',
         '  prompt-exporter sync --source perplexity',
+        '  prompt-exporter chromium start --url https://m365.cloud.microsoft/chat',
+        '  prompt-exporter sync --source copilot',
         '  prompt-exporter rule-install --source cursor',
         '  prompt-exporter skill-install --registry awesome-cursor-skills --list',
         '',
@@ -165,6 +171,8 @@ export function createCli(): Command {
         '  prompt-exporter chromium start',
         '  prompt-exporter chromium start --port 9222',
         '  prompt-exporter chromium start --url https://lumo.proton.me/',
+        '  prompt-exporter chromium start --url https://www.perplexity.ai/',
+        '  prompt-exporter chromium start --url https://m365.cloud.microsoft/chat',
         '  prompt-exporter chromium start --isolated',
       ].join('\n')
     )
@@ -251,6 +259,16 @@ export function createCli(): Command {
       });
       return;
     }
+    if (sourceId === 'copilot') {
+      await copilotBackupCommand({
+        output: resolveOutput(options),
+        incremental: options.incremental,
+        verbose: options.verbose,
+        cdpPort: options.port,
+        delay: options.delay,
+      });
+      return;
+    }
     if (sourceId !== 'chatgpt') {
       throw new Error(
         `Source "${sourceId}" is registered but sync is not implemented yet`
@@ -323,6 +341,7 @@ export function createCli(): Command {
           '  prompt-exporter sync --source chatgpt',
           '  prompt-exporter sync --source lumo',
           '  prompt-exporter sync --source perplexity',
+          '  prompt-exporter sync --source copilot',
           '  prompt-exporter sync --download-files',
           '  prompt-exporter sync --no-incremental',
         ].join('\n')
@@ -375,6 +394,14 @@ export function createCli(): Command {
         }
         if (sourceId === 'perplexity') {
           await perplexityListCommand({
+            verbose: options.verbose,
+            json: options.json,
+            cdpPort: options.port,
+          });
+          return;
+        }
+        if (sourceId === 'copilot') {
+          await copilotListCommand({
             verbose: options.verbose,
             json: options.json,
             cdpPort: options.port,

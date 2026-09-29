@@ -31,6 +31,10 @@ Ensure you are logged in and chats are visible in the sidebar before `sync --sou
 
 Confirm Library threads are visible in the CDP browser at [perplexity.ai](https://www.perplexity.ai/).
 
+## Copilot empty sync / auth errors
+
+Confirm you are signed in at [m365.cloud.microsoft/chat](https://m365.cloud.microsoft/chat) in the CDP browser. Sync reads the page MSAL token and calls Substrate — refresh the tab if the token expired. Increase `--delay` if you hit throttling.
+
 ## Skills: rate limit / API errors
 
 Current releases clone registries with **git** and scan disk. If you still see Contents API rate-limit messages, upgrade or ensure you are not forcing an old binary. For clone failures, check network, `git` on `PATH`, and public HTTPS access to the forge.

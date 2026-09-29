@@ -31,9 +31,10 @@ This manual is the published user documentation for **prompt-exporter**.
 8. [Sync ChatGPT](./guides/chatgpt.md)
 9. [Sync Lumo](./guides/lumo.md)
 10. [Sync Perplexity](./guides/perplexity.md)
-11. [Handoff to another AI](./guides/handoff.md)
-12. [Cursor workspace rules](./guides/rules.md)
-13. [Skills registries](./guides/skills.md)
+11. [Sync Microsoft 365 Copilot](./guides/copilot.md)
+12. [Handoff to another AI](./guides/handoff.md)
+13. [Cursor workspace rules](./guides/rules.md)
+14. [Skills registries](./guides/skills.md)
 
 ### Command reference
 

@@ -151,6 +151,32 @@ export function isPerplexityUrl(url: string): boolean {
   }
 }
 
+export function isCopilotUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    const path = parsed.pathname.toLowerCase();
+    const m365Host =
+      host === 'm365.cloud.microsoft' ||
+      host === 'www.microsoft365.com' ||
+      host === 'microsoft365.com' ||
+      host === 'www.office.com' ||
+      host === 'office.com' ||
+      host === 'copilot.microsoft.com' ||
+      host === 'www.copilot.microsoft.com';
+    if (!m365Host) return false;
+    // Prefer chat surfaces; also accept root m365.cloud.microsoft while loading
+    return (
+      path.startsWith('/chat') ||
+      path === '/' ||
+      path === '' ||
+      host.includes('copilot.microsoft.com')
+    );
+  } catch {
+    return false;
+  }
+}
+
 function parseTarget(raw: JsonObject): CdpTarget | null {
   if (typeof raw.id !== 'string') return null;
   return {

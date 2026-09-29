@@ -7,10 +7,10 @@ Download conversations for a source to local JSON + Markdown.
 ## Usage
 
 ```bash
-prompt-exporter sync
 prompt-exporter sync --source chatgpt
 prompt-exporter sync --source lumo
 prompt-exporter sync --source perplexity
+prompt-exporter sync --source copilot
 prompt-exporter sync --download-files
 prompt-exporter sync --no-incremental
 prompt-exporter sync --concurrency 6 --delay 200
@@ -42,5 +42,5 @@ prompt-exporter backup --source chatgpt
 ## See also
 
 - [Quick start](../quick-start.md)
-- [ChatGPT](../guides/chatgpt.md) · [Lumo](../guides/lumo.md) · [Perplexity](../guides/perplexity.md)
+- [ChatGPT](../guides/chatgpt.md) · [Lumo](../guides/lumo.md) · [Perplexity](../guides/perplexity.md) · [Copilot](../guides/copilot.md)
 - [Data layout](../concepts/data-layout.md)

@@ -27,6 +27,14 @@ prompt-exporter chromium start --url https://lumo.proton.me/
 prompt-exporter sync --source lumo
 ```
 
+## Microsoft 365 Copilot
+
+```bash
+prompt-exporter chromium start --url https://m365.cloud.microsoft/chat
+# Sign in; wait until Copilot Chat loads
+prompt-exporter sync --source copilot
+```
+
 ## Cursor rules and skills
 
 From a project root:
@@ -48,6 +56,6 @@ prompt-exporter sources                        # list registered sources
 
 ## Next steps
 
-- Source-specific guides: [ChatGPT](./guides/chatgpt.md), [Lumo](./guides/lumo.md), [Perplexity](./guides/perplexity.md)
+- Source-specific guides: [ChatGPT](./guides/chatgpt.md), [Lumo](./guides/lumo.md), [Perplexity](./guides/perplexity.md), [Copilot](./guides/copilot.md)
 - [Data layout](./concepts/data-layout.md)
 - [Command overview](./commands/README.md)

@@ -11,6 +11,7 @@ prompt-exporter chromium start
 prompt-exporter chromium start --port 9222
 prompt-exporter chromium start --url https://lumo.proton.me/
 prompt-exporter chromium start --url https://www.perplexity.ai/
+prompt-exporter chromium start --url https://m365.cloud.microsoft/chat
 prompt-exporter chromium start --isolated
 ```
 
